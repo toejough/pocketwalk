@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 # [ Helpers ]
 # XXX mypy freaks out here and backtraces if I type command as a str.
+# XXX add unit tests
 def run(command, args):  # type: ignore
     """Run the command."""
     logger.info("Running command: {}".format(command))

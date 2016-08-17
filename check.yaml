@@ -1,0 +1,14 @@
+paths:
+    - static_checker/__init__.py
+    - static_checker/components/checker.py
+    - static_checker/components/watcher.py
+    - static_checker/interactors/cli.py
+    - static_checker/interactors/config.py
+    - static_checker/interactors/runner.py
+    - static_checker/thin_types/command.py
+    - static_checker/thin_types/real_file_path.py
+
+checks:
+    - [vulture]
+    - [prospector]
+    - [mypy, -s, --fast-parser, --disallow-untyped-defs]
