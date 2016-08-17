@@ -2,8 +2,13 @@
 
 
 # [ Imports ]
-from runner import run
+# [ -Python ]
 import logging
+from typing import Sequence, Callable
+from pathlib import Path
+# [ -Project ]
+from runner import run
+from command import Command
 
 
 # [ Logging ]
@@ -14,20 +19,26 @@ logger = logging.getLogger(__name__)
 class Checker:
     """Checker."""
 
-    def __init__(self, *, commands, paths, on_success):
+    def __init__(
+        self, *,
+        get_commands: Callable[[], Sequence[Command]],
+        get_paths: Callable[[], Sequence[Path]],
+        on_success: Callable[[], None]
+    ) -> None:
         """Init the state."""
-        self._commands = commands
-        self._paths = paths
+        self._get_commands = get_commands
+        self._get_paths = get_paths
         self._on_success = on_success
 
-    def run(self):
+    def run(self) -> None:
         """Run the checks."""
         logger.info("running the static checkers...")
 
-        path_strings = [str(p) for p in self._paths]
+        path_strings = tuple(str(p) for p in self._get_paths())
 
-        for command in self._commands:
-            result = run(command, path_strings)
+        for command in self._get_commands():
+            args = command.args + path_strings
+            result = run(command.command, args)
             if not result.success:
                 return
         try:

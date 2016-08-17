@@ -6,10 +6,18 @@
 # [ -Python ]
 from pathlib import Path
 import logging
+from typing import Sequence, Any
+# [ -Third Party ]
+import yaml
 # [ -Project ]
 from checker import Checker
 from watcher import Watcher
 from runner import run
+from command import Command
+
+
+# [ Global ]
+CONFIG_PATH = Path(__name__).parent / 'check.yaml'
 
 
 # [ Logging ]
@@ -17,48 +25,42 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+# [ Helper Helpers ]
+def get_config(section: str) -> Any:
+    """Return the config."""
+    return yaml.load(CONFIG_PATH.read_text())[section]
+
+
 # [ Helpers ]
-def get_paths():
+def get_paths() -> Sequence[Path]:
     """Return the paths to watch/check."""
-    return [
-        Path(__file__),
-        Path(__file__).parent / 'runner.py',
-        Path(__file__).parent / 'checker.py',
-        Path(__file__).parent / 'watcher.py',
-    ]
+    return [Path(p) for p in get_config('paths')]
 
 
-def get_commands():
+def get_commands() -> Sequence[Command]:
     """Return the commands to run."""
-    return [
-        'vulture',
-        'prospector',
-        ['mypy', '--fast-parser', '--disallow-untyped-defs'],
-    ]
+    return [Command(*c) for c in get_config('checks')]
 
 
-def commit():
+def commit() -> None:
     """Commit the current repo."""
     logger.info('committing...')
     run('git', ['commit', '-am', "static checks passed"])
 
 
 # [ Main ]
-def main():
+def main() -> None:
     """Perform the static checking."""
     logger.info('Running static checker...')
 
-    paths = get_paths()
-    commands = get_commands()
-
     checker = Checker(
-        commands=commands,
-        paths=paths,
+        get_commands=get_commands,
+        get_paths=get_paths,
         on_success=commit
     )
 
     Watcher(
-        paths=paths,
+        get_paths=get_paths,
         on_modification=checker.run
     ).watch()
 

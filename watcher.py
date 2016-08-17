@@ -4,6 +4,9 @@
 # [ Imports ]
 import logging
 from pprint import pformat
+from typing import Sequence, Dict, Callable
+from pathlib import Path
+from time import sleep
 
 
 # [ Logging ]
@@ -11,13 +14,19 @@ logger = logging.getLogger(__name__)
 
 
 # [ Helpers ]
-def get_mtimes(paths):
+def get_mtimes(paths: Sequence[Path]) -> Dict[Path, int]:
     """Return the mtimes for the paths."""
     logger.debug("getting mtimes for {}".format(pformat(paths)))
 
     mtimes = {}
     for p in paths:
-        mtimes[p] = p.stat().st_mtime
+        try:
+            mtimes[p] = p.stat().st_mtime
+        except FileNotFoundError:
+            # Try again?
+            # fail out if not found a second time.
+            sleep(0.1)
+            mtimes[p] = p.stat().st_mtime
     return mtimes
 
 
@@ -25,19 +34,24 @@ def get_mtimes(paths):
 class Watcher:
     """Watch files."""
 
-    def __init__(self, *, paths, on_modification):
+    def __init__(
+        self, *,
+        get_paths: Callable[[], Sequence[Path]],
+        on_modification: Callable[[], None]
+    ) -> None:
         """Init the state."""
-        self._paths = paths
+        self._get_paths = get_paths
         self._on_modification = on_modification
 
-    def watch(self):
+    def watch(self) -> None:
         """Watch the files."""
-        logger.info("watching {}".format(pformat(self._paths)))
+        paths = self._get_paths()
+        logger.info("watching {}".format(pformat(paths)))
 
         last_mtimes = None
         try:
             while True:
-                new_mtimes = get_mtimes(self._paths)
+                new_mtimes = get_mtimes(paths)
                 if last_mtimes != new_mtimes:
                     try:
                         self._on_modification()
