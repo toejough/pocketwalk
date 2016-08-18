@@ -8,7 +8,6 @@ from pprint import pformat
 from typing import Sequence, Dict, Callable, Awaitable, Optional
 from pathlib import Path
 from time import sleep
-import sys
 import asyncio
 import concurrent.futures
 # [ -Third Party ]
@@ -45,12 +44,12 @@ async def _get_mtimes(paths: Sequence[Path]) -> Dict[Path, float]:
     return mtimes
 
 
-def _wait() -> None:
+def _wait(*, silently: bool) -> None:
     """Wait."""
-    print("\rWaiting for changes...{}".format(
-        T.clear_eol
-    ), end='')
-    sys.stdout.flush()
+    if not silently:
+        print("\rWaiting for changes...{}".format(
+            T.clear_eol
+        ), end='')
     sleep(1)
 
 
@@ -81,7 +80,8 @@ class Watcher:
         try:
             await a_sync.run(self._unsafe_on_modification)
         except concurrent.futures.CancelledError:
-            pass
+            logger.info("Run-checks cancelled.")
+            raise
         except Exception:
             logger.exception("Unexpected exception while running 'on_modification' callback from watcher.")
             exit(1)
@@ -106,7 +106,8 @@ class Watcher:
                 running_checks = asyncio.ensure_future(self._on_modification())  # type: ignore
                 last_mtimes = new_mtimes
             else:
-                await a_sync.run(_wait)
+                silently = running_checks and not running_checks.done()
+                await a_sync.run(_wait, silently=silently)
 
     async def _interruptable_watch(self) -> None:
         """Watch, interruptable by Ctrl-c."""

@@ -6,7 +6,6 @@
 import logging
 from typing import Sequence, Callable, Awaitable
 from pathlib import Path
-import sys
 from types import SimpleNamespace
 import asyncio
 import concurrent.futures
@@ -22,16 +21,10 @@ logger = logging.getLogger(__name__)
 
 
 # [ Helpers ]
-def report_part(part: str) -> None:
-    """Report some partial data (no newline)."""
-    print(part, end='')
-    sys.stdout.flush()
-
-
 def report_result(command: str, result: SimpleNamespace) -> None:
     """Report the result."""
     outcome = 'pass' if result.success else 'fail'
-    print(outcome)
+    print('result for {}: {}'.format(command, outcome))
     if not result.success:
         print("{} output:".format(command))
         print(result.output)
@@ -40,7 +33,7 @@ def report_result(command: str, result: SimpleNamespace) -> None:
 async def _run_single(command: Command, path_strings: Sequence[str]) -> SimpleNamespace:
     """Run single command."""
     args = command.args + path_strings
-    await a_sync.run(report_part, "running {}...".format(command.command))
+    await a_sync.run(print, "running {}...".format(command.command))
     result = await run(command.command, args)
     await a_sync.run(report_result, command.command, result)
     return result
@@ -82,22 +75,30 @@ class Checker:
         commands = await self._get_commands()
         tasks = []
         stop = False
-        for command in commands:
-            # XXX colored check/x
-            # XXX bold current command
-            # XXX normal old command
-            # XXX mypy says asyncio doesn't have ensure_future
-            task = asyncio.ensure_future(_run_single(command, path_strings))  # type: ignore
-            tasks.append(task)
-        while not stop:
-            done, pending = await asyncio.wait(tasks, return_when=concurrent.futures.FIRST_COMPLETED)
-            for future in done:
-                if not future.result().success:
-                    for pending_future in pending:
-                        pending_future.cancel()
-                    # XXX mypy says wait is wrong: incompatible type Set[Future[Any]]; expected List[Task[None]]
-                    await asyncio.wait(pending)  # type: ignore
-                    return
-            stop = not pending
+        try:
+            for command in commands:
+                # XXX colored check/x
+                # XXX bold current command
+                # XXX normal old command
+                # XXX print command result as 'cancelled' when it's cancelled
+                # XXX mypy says asyncio doesn't have ensure_future
+                task = asyncio.ensure_future(_run_single(command, path_strings))  # type: ignore
+                tasks.append(task)
+            while not stop:
+                done, pending = await asyncio.wait(tasks, return_when=concurrent.futures.FIRST_COMPLETED)
+                for future in done:
+                    if not future.result().success:
+                        for pending_future in pending:
+                            pending_future.cancel()
+                        # XXX mypy says wait is wrong: incompatible type Set[Future[Any]]; expected List[Task[None]]
+                        if pending:
+                            await asyncio.wait(pending)  # type: ignore
+                        return
+                stop = not pending
+        except concurrent.futures.CancelledError:
+            logger.info("checking cancelled - cancelling running checks")
+            for task in tasks:
+                task.cancel()
+            raise
 
         await self._on_success(paths)
