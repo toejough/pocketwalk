@@ -24,6 +24,27 @@ logger = logging.getLogger(__name__)
 # XXX print the file being checked
 # XXX Bump logging to warning
 # XXX add unit tests
+# [ Helper helpers ]
+def get_status() -> Sequence[str]:
+    """Get repo status."""
+    logger.info('getting status...')
+    return run('git', ['status', '--porcelain']).output.splitlines()
+
+
+def add_missing_paths(paths: Sequence[Path]) -> None:
+    """Add any missing paths to the repo."""
+    logger.info('adding missing paths...')
+    status_lines = get_status()
+    if not status_lines:
+        return
+    new_file_lines = [l for l in status_lines if l.startswith('??')]
+    new_path_strings = [v for l in new_file_lines for k, v in [l.split()]]
+    for path in paths:
+        path_string = str(path)
+        if path_string in new_path_strings:
+            run('git', ['add', path_string])
+
+
 # [ Helpers ]
 def get_paths() -> Sequence[Path]:
     """Return the paths to watch/check."""
@@ -39,19 +60,8 @@ def get_commands() -> Sequence[Command]:
 def commit(paths: Sequence[Path]) -> None:
     """Commit the current repo."""
     logger.info('committing...')
-    status_lines = run('git', ['status', '--porcelain']).output.splitlines()
-    if not status_lines:
-        return
-    new_file_lines = [l for l in status_lines if l.startswith('??')]
-    new_path_strings = [v for l in new_file_lines for k, v in [l.split()]]
-    for path in paths:
-        path_string = str(path)
-        if path_string in new_path_strings:
-            run('git', ['add', path_string])
-    if new_path_strings:
-        status_lines = run('git', ['status', '--porcelain']).output.splitlines()
-        if not status_lines:
-            return
+    add_missing_paths(paths)
+    status_lines = get_status()
     modified_file_lines = [l for l in status_lines if not l.startswith('??')]
     if not modified_file_lines:
         return
