@@ -21,8 +21,8 @@ logger = logging.getLogger(__name__)
 
 
 # XXX Better doc strings
-# XXX print the file being checked
 # XXX Bump logging to warning
+# XXX watch the config file by default
 # XXX add unit tests
 # [ Helpers ]
 def get_paths() -> Sequence[Path]:

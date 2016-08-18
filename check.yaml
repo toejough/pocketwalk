@@ -2,6 +2,7 @@ paths:
     - static_checker/__init__.py
     - static_checker/components/checker.py
     - static_checker/components/watcher.py
+    - static_checker/components/source_control.py
     - static_checker/interactors/cli.py
     - static_checker/interactors/config.py
     - static_checker/interactors/runner.py

@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 # [ Helpers ]
 # XXX Better doc strings
+# XXX print the file being checked
 # XXX show what files changed
 # XXX Async for blocking calls
 # XXX checks are sagas
