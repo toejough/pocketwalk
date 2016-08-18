@@ -3,9 +3,12 @@
 
 
 # [ Imports ]
+# [ -Third Party ]
+import a_sync
+# [ -Project ]
 import static_checker
 
 
 # [ Main ]
 if __name__ == "__main__":
-    static_checker.main()
+    a_sync.block(static_checker.main)

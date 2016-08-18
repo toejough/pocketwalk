@@ -44,7 +44,7 @@ def _get_commands() -> Sequence[Command]:
 
 
 # [ Main ]
-def main() -> None:
+async def main() -> None:
     """Perform the static checking."""
     logger.info('Running static checker...')
 
@@ -57,7 +57,7 @@ def main() -> None:
     if cli.get_arg('once'):
         checker.run()
     else:
-        Watcher(
+        await Watcher(
             get_paths=_get_watch_paths,
             on_modification=checker.run
         ).watch()

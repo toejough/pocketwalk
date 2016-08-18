@@ -11,6 +11,7 @@ from time import sleep
 import sys
 # [ -Third Party ]
 import blessed
+import a_sync
 
 
 # [ Terminal ]
@@ -23,17 +24,16 @@ logger = logging.getLogger(__name__)
 
 # [ Helpers ]
 # XXX Better doc strings
-# XXX Async for blocking calls
 # XXX checks are sagas
 # XXX add unit tests
-def _get_mtimes(paths: Sequence[Path]) -> Dict[Path, float]:
+async def _get_mtimes(paths: Sequence[Path]) -> Dict[Path, float]:
     """Return the mtimes for the paths."""
     logger.debug("getting mtimes for {}".format(pformat(paths)))
 
     mtimes = {}
     for p in paths:
         try:
-            stats = p.stat()
+            stats = await a_sync.run(p.stat)
             mtimes[p] = stats.st_mtime
         except FileNotFoundError:
             # Try again?
@@ -82,12 +82,12 @@ class Watcher:
             logger.exception("Unexpected exception while running 'on_modification' callback from watcher.")
             exit(1)
 
-    def _watch(self) -> None:
+    async def _watch(self) -> None:
         """Watch the paths."""
         last_mtimes = {}  # type: Dict[Path, float]
         while True:
             paths = self._get_paths()
-            new_mtimes = _get_mtimes(paths)
+            new_mtimes = await _get_mtimes(paths)
             changed_paths = _get_changed_paths(last_mtimes, new_mtimes)
             if changed_paths:
                 print("\rFound changes in files:{}\n{}".format(
@@ -99,14 +99,14 @@ class Watcher:
             else:
                 _wait()
 
-    def _interruptable_watch(self) -> None:
+    async def _interruptable_watch(self) -> None:
         """Watch, interruptable by Ctrl-c."""
         try:
-            self._watch()
+            await self._watch()
         except KeyboardInterrupt:
             print("\nReceived Ctrl-c.  Stopping.")
             exit(0)
 
-    def watch(self) -> None:
+    async def watch(self) -> None:
         """Watch the files."""
-        self._interruptable_watch()
+        await self._interruptable_watch()
