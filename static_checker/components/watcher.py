@@ -23,8 +23,6 @@ logger = logging.getLogger(__name__)
 
 # [ Helpers ]
 # XXX Better doc strings
-# XXX print the file being checked
-# XXX show what files changed
 # XXX Async for blocking calls
 # XXX checks are sagas
 # XXX add unit tests
@@ -53,6 +51,15 @@ def _wait() -> None:
     sleep(1)
 
 
+def _get_changed_paths(last_mtimes: Dict[Path, int], new_mtimes: Dict[Path, int]) -> Sequence[Path]:
+    """Get the changed paths."""
+    new_paths = [k for k in new_mtimes if k not in last_mtimes]
+    maintained_paths = [k for k in last_mtimes if k in new_mtimes]
+    modified_paths = [p for p in maintained_paths if new_mtimes[p] != last_mtimes[p]]
+    removed_paths = [k for k in last_mtimes if k not in new_mtimes]
+    return new_paths + modified_paths + removed_paths
+
+
 # [ API ]
 class Watcher:
     """Watch files."""
@@ -76,11 +83,15 @@ class Watcher:
 
     def _watch(self, paths: Sequence[Path]) -> None:
         """Watch the paths."""
-        last_mtimes = None
+        last_mtimes = {}  # type: Dict[Path, int]
         while True:
             new_mtimes = get_mtimes(paths)
-            if last_mtimes != new_mtimes:
-                print("\rFound changes...{}".format(T.clear_eol))
+            changed_paths = _get_changed_paths(last_mtimes, new_mtimes)
+            if changed_paths:
+                print("\rFound changes in files:{}\n{}".format(
+                    T.clear_eol,
+                    pformat([str(p) for p in changed_paths])
+                ))
                 self._on_modification()
                 last_mtimes = new_mtimes
             else:
