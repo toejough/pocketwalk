@@ -79,10 +79,11 @@ class Checker:
         paths = await self._get_paths()
         path_strings = tuple(str(p) for p in paths)
 
+        commands = await self._get_commands()
         with a_sync.idle_event_loop() as loop:
             tasks = []
             stop = False
-            for command in await self._get_commands():
+            for command in commands:
                 # XXX colored check/x
                 # XXX bold current command
                 # XXX normal old command
