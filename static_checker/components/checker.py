@@ -58,6 +58,7 @@ class Checker:
             logger.exception("Unexpected exception while running 'on_success' callback from checker.")
             exit(1)
 
+    # XXX only check changed files for prospector
     def run(self) -> None:
         """Run the checks."""
         logger.info("running the static checkers...")
