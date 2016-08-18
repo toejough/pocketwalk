@@ -4,6 +4,11 @@
 # [ Imports ]
 from pathlib import Path
 import logging
+from types import Any
+
+
+# [ Pyflakes ]
+assert Any
 
 
 # [ Logging ]
@@ -15,7 +20,7 @@ logger = logging.getLogger(__name__)
 # [ API ]
 def real_file_path(path_string: str) -> Path:
     """Build an absolute, concrete, existing path to a file."""
-    path = Path(path_string)
+    path = Path(path_string)  # type: Any
     if not path.is_absolute():
         path = Path.cwd() / path_string
     if not path.is_file():

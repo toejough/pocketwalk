@@ -26,14 +26,15 @@ logger = logging.getLogger(__name__)
 # XXX Async for blocking calls
 # XXX checks are sagas
 # XXX add unit tests
-def _get_mtimes(paths: Sequence[Path]) -> Dict[Path, int]:
+def _get_mtimes(paths: Sequence[Path]) -> Dict[Path, float]:
     """Return the mtimes for the paths."""
     logger.debug("getting mtimes for {}".format(pformat(paths)))
 
     mtimes = {}
     for p in paths:
         try:
-            mtimes[p] = p.stat().st_mtime
+            stats = p.stat()
+            mtimes[p] = stats.st_mtime
         except FileNotFoundError:
             # Try again?
             # fail out if not found a second time.
@@ -51,7 +52,7 @@ def _wait() -> None:
     sleep(1)
 
 
-def _get_changed_paths(last_mtimes: Dict[Path, int], new_mtimes: Dict[Path, int]) -> Sequence[Path]:
+def _get_changed_paths(last_mtimes: Dict[Path, float], new_mtimes: Dict[Path, float]) -> Sequence[Path]:
     """Get the changed paths."""
     new_paths = [k for k in new_mtimes if k not in last_mtimes]
     maintained_paths = [k for k in last_mtimes if k in new_mtimes]
@@ -83,7 +84,7 @@ class Watcher:
 
     def _watch(self) -> None:
         """Watch the paths."""
-        last_mtimes = {}  # type: Dict[Path, int]
+        last_mtimes = {}  # type: Dict[Path, float]
         while True:
             paths = self._get_paths()
             new_mtimes = _get_mtimes(paths)
