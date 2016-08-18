@@ -4,7 +4,7 @@
 # [ Imports ]
 from pathlib import Path
 import logging
-from types import Any
+from typing import Any
 
 
 # [ Pyflakes ]

@@ -9,6 +9,7 @@ from typing import Sequence, Dict, Callable
 from pathlib import Path
 from time import sleep
 import sys
+import asyncio
 # [ -Third Party ]
 import blessed
 import a_sync
@@ -38,8 +39,9 @@ async def _get_mtimes(paths: Sequence[Path]) -> Dict[Path, float]:
         except FileNotFoundError:
             # Try again?
             # fail out if not found a second time.
-            sleep(0.1)
-            mtimes[p] = p.stat().st_mtime
+            await asyncio.sleep(0.1)
+            stats = await a_sync.run(p.stat)
+            mtimes[p] = stats.st_mtime
     return mtimes
 
 
@@ -74,10 +76,10 @@ class Watcher:
         self._get_paths = get_paths
         self._unsafe_on_modification = on_modification
 
-    def _on_modification(self) -> None:
+    async def _on_modification(self) -> None:
         """Safe version of _unsafe_on_modification."""
         try:
-            self._unsafe_on_modification()
+            await a_sync.run(self._unsafe_on_modification)
         except Exception:
             logger.exception("Unexpected exception while running 'on_modification' callback from watcher.")
             exit(1)
@@ -90,20 +92,21 @@ class Watcher:
             new_mtimes = await _get_mtimes(paths)
             changed_paths = _get_changed_paths(last_mtimes, new_mtimes)
             if changed_paths:
-                print("\rFound changes in files:{}\n{}".format(
+                await a_sync.run(print, "\rFound changes in files:{}\n{}".format(
                     T.clear_eol,
                     pformat([str(p) for p in changed_paths])
                 ))
-                self._on_modification()
+                await self._on_modification()
                 last_mtimes = new_mtimes
             else:
-                _wait()
+                await a_sync.run(_wait)
 
     async def _interruptable_watch(self) -> None:
         """Watch, interruptable by Ctrl-c."""
         try:
             await self._watch()
         except KeyboardInterrupt:
+            # no async around this - we're exiting.
             print("\nReceived Ctrl-c.  Stopping.")
             exit(0)
 
