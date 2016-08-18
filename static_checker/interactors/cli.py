@@ -11,7 +11,6 @@ from ..thin_types.real_file_path import real_file_path
 
 
 # [ Logging ]
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 

@@ -7,11 +7,10 @@ from pathlib import Path
 import logging
 from typing import Sequence
 # [ -Project ]
-from .interactors.runner import run
+from ..interactors.runner import run
 
 
 # [ Logging ]
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
