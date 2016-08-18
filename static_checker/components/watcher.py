@@ -44,6 +44,15 @@ def get_mtimes(paths: Sequence[Path]) -> Dict[Path, int]:
     return mtimes
 
 
+def _wait() -> None:
+    """Wait."""
+    print("\rWaiting for changes...{}".format(
+        T.clear_eol
+    ), end='')
+    sys.stdout.flush()
+    sleep(1)
+
+
 # [ API ]
 class Watcher:
     """Watch files."""
@@ -69,19 +78,13 @@ class Watcher:
         """Watch the paths."""
         last_mtimes = None
         while True:
-            sys.stdout.flush()
             new_mtimes = get_mtimes(paths)
             if last_mtimes != new_mtimes:
                 print("\rFound changes...{}".format(T.clear_eol))
-                sys.stdout.flush()
                 self._on_modification()
                 last_mtimes = new_mtimes
             else:
-                print("\rWaiting for changes...{}".format(
-                    T.clear_eol
-                ), end='')
-                sys.stdout.flush()
-                sleep(1)
+                _wait()
 
     def _interruptable_watch(self, paths: Sequence[Path]) -> None:
         """Watch, interruptable by Ctrl-c."""
