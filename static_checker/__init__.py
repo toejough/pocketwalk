@@ -21,7 +21,6 @@ logger = logging.getLogger(__name__)
 
 
 # XXX Better doc strings
-# XXX prompt the user for their commit message
 # XXX show user actual changes
 # XXX print the file being checked
 # XXX Bump logging to warning
@@ -43,7 +42,8 @@ def commit(paths: Sequence[Path]) -> None:
     logger.info('committing...')
     for path in paths:
         run('git', ['add', str(path)])
-    run('git', ['commit', '-am', "static checks passed"])
+    message = input('commit message: ')
+    run('git', ['commit', '-am', message])
 
 
 # [ Main ]
