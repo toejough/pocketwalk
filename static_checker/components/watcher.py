@@ -5,7 +5,7 @@
 # [ -Python ]
 import logging
 from pprint import pformat
-from typing import Sequence, Dict, Callable
+from typing import Sequence, Dict, Callable, Awaitable, Optional
 from pathlib import Path
 from time import sleep
 import sys
@@ -69,8 +69,8 @@ class Watcher:
 
     def __init__(
         self, *,
-        get_paths: Callable[[], Sequence[Path]],
-        on_modification: Callable[[], None]
+        get_paths: Callable[[], Awaitable[Sequence[Path]]],
+        on_modification: Callable[[], Optional[Awaitable[None]]]
     ) -> None:
         """Init the state."""
         self._get_paths = get_paths
@@ -88,7 +88,7 @@ class Watcher:
         """Watch the paths."""
         last_mtimes = {}  # type: Dict[Path, float]
         while True:
-            paths = self._get_paths()
+            paths = await self._get_paths()
             new_mtimes = await _get_mtimes(paths)
             changed_paths = _get_changed_paths(last_mtimes, new_mtimes)
             if changed_paths:
@@ -105,6 +105,7 @@ class Watcher:
         """Watch, interruptable by Ctrl-c."""
         try:
             await self._watch()
+        # XXX figure out keyboard interrupt for async - gives nasty bt
         except KeyboardInterrupt:
             # no async around this - we're exiting.
             print("\nReceived Ctrl-c.  Stopping.")

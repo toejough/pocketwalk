@@ -6,6 +6,8 @@
 from pathlib import Path
 import logging
 from typing import Sequence
+# [ -Third Party ]
+import a_sync
 # [ -Project ]
 from ..interactors.runner import run
 
@@ -17,10 +19,10 @@ logger = logging.getLogger(__name__)
 # XXX Better doc strings
 # XXX add unit tests
 # [ Helpers ]
-def _get_status() -> Sequence[str]:
+async def _get_status() -> Sequence[str]:
     """Get repo status."""
     logger.info('getting status...')
-    return run('git', ['status', '--porcelain']).output.splitlines()
+    return (await run('git', ['status', '--porcelain'])).output.splitlines()
 
 
 def _add_missing_paths(paths: Sequence[Path], status_lines: Sequence[str]) -> None:
@@ -37,14 +39,14 @@ def _add_missing_paths(paths: Sequence[Path], status_lines: Sequence[str]) -> No
 
 
 # [ API ]
-def commit(paths: Sequence[Path]) -> None:
+async def commit(paths: Sequence[Path]) -> None:
     """Commit the current repo."""
     logger.info('committing...')
-    status_lines = _get_status()
+    status_lines = await _get_status()
     _add_missing_paths(paths, status_lines)
     modified_file_lines = [l for l in status_lines if not l.startswith('??')]
     if not modified_file_lines:
         return
-    print(run('git', ['diff', '--color']).output)
+    await a_sync.run(print, (await run('git', ['diff', '--color'])).output)
     message = input('commit message: ')
-    run('git', ['commit', '-am', message])
+    await run('git', ['commit', '-am', message])

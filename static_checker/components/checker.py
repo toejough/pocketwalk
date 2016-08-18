@@ -4,10 +4,12 @@
 # [ Imports ]
 # [ -Python ]
 import logging
-from typing import Sequence, Callable
+from typing import Sequence, Callable, Awaitable
 from pathlib import Path
 import sys
 from types import SimpleNamespace
+# [ -Third Party ]
+import a_sync
 # [ -Project ]
 from ..interactors.runner import run
 from ..thin_types.command import Command
@@ -41,40 +43,40 @@ class Checker:
 
     def __init__(
         self, *,
-        get_commands: Callable[[], Sequence[Command]],
-        get_paths: Callable[[], Sequence[Path]],
-        on_success: Callable[[Sequence[Path]], None]
+        get_commands: Callable[[], Awaitable[Sequence[Command]]],
+        get_paths: Callable[[], Awaitable[Sequence[Path]]],
+        on_success: Callable[[Sequence[Path]], Awaitable[None]]
     ) -> None:
         """Init the state."""
         self._get_commands = get_commands
         self._get_paths = get_paths
         self._unsafe_on_success = on_success
 
-    def _on_success(self, paths: Sequence[Path]) -> None:
+    async def _on_success(self, paths: Sequence[Path]) -> None:
         """Run the passed in 'on_success' function safely."""
         try:
-            self._unsafe_on_success(paths)
+            await a_sync.run(self._unsafe_on_success, paths)
         except Exception:
             logger.exception("Unexpected exception while running 'on_success' callback from checker.")
             exit(1)
 
     # XXX only check changed files for prospector
-    def run(self) -> None:
+    async def run(self) -> None:
         """Run the checks."""
         logger.info("running the static checkers...")
 
-        paths = self._get_paths()
+        paths = await self._get_paths()
         path_strings = tuple(str(p) for p in paths)
 
-        for command in self._get_commands():
+        for command in await self._get_commands():
             # XXX colored check/x
             # XXX bold current command
             # XXX normal old command
             args = command.args + path_strings
-            report_part("running {}...".format(command.command))
-            result = run(command.command, args)
-            report_result(command.command, result)
+            await a_sync.run(report_part, "running {}...".format(command.command))
+            result = await run(command.command, args)
+            await a_sync.run(report_result, command.command, result)
             if not result.success:
                 return
 
-        self._on_success(paths)
+        await self._on_success(paths)

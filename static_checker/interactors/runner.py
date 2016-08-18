@@ -2,9 +2,12 @@
 
 
 # [ Imports ]
+# [ -Python ]
 import subprocess
 from types import SimpleNamespace
 import logging
+# [ -Third Party ]
+import a_sync
 
 
 # [ Logging ]
@@ -14,10 +17,11 @@ logger = logging.getLogger(__name__)
 # [ Helpers ]
 # XXX mypy freaks out here and backtraces if I type command as a str.
 # XXX add unit tests
-def run(command, args):  # type: ignore
+async def run(command, args):  # type: ignore
     """Run the command."""
     logger.info("Running command: {} {}".format(command, ' '.join(args)))
-    result = subprocess.run(
+    result = await a_sync.run(
+        subprocess.run,
         [command, *args],
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
     )

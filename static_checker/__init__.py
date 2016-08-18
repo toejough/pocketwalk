@@ -26,21 +26,21 @@ logger = logging.getLogger(__name__)
 # XXX add unit tests
 # [ Helpers ]
 # XXX mypy bails with an internal error if Sequence[Path] is the return
-def _get_watch_paths():  # type: ignore
+async def _get_watch_paths():  # type: ignore
     """Return the paths to watch."""
-    check_paths = _get_check_paths()
-    config_path = cli.get_arg('config')
+    check_paths = await _get_check_paths()
+    config_path = await cli.get_arg('config')
     return [*check_paths, config_path]
 
 
-def _get_check_paths() -> Sequence[Path]:
+async def _get_check_paths() -> Sequence[Path]:
     """Return the paths to check."""
-    return [Path(p) for p in config.get_config('paths')]
+    return [Path(p) for p in await config.get_config('paths')]
 
 
-def _get_commands() -> Sequence[Command]:
+async def _get_commands() -> Sequence[Command]:
     """Return the commands to run."""
-    return [Command(*c) for c in config.get_config('checks')]
+    return [Command(*c) for c in await config.get_config('checks')]
 
 
 # [ Main ]
@@ -54,8 +54,8 @@ async def main() -> None:
         on_success=commit
     )
 
-    if cli.get_arg('once'):
-        checker.run()
+    if await cli.get_arg('once'):
+        await checker.run()
     else:
         await Watcher(
             get_paths=_get_watch_paths,

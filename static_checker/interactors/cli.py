@@ -6,6 +6,8 @@
 import logging
 from typing import Any
 from argparse import ArgumentParser
+# [ -Third Party ]
+import a_sync
 # [ -Project ]
 from ..thin_types.real_file_path import real_file_path
 
@@ -35,11 +37,11 @@ def get_parser() -> ArgumentParser:
 
 
 # [ API ]
-def get_arg(arg: str) -> Any:
+async def get_arg(arg: str) -> Any:
     """Return the arg."""
     parser = get_parser()
     try:
-        args = parser.parse_args()
+        args = await a_sync.run(parser.parse_args)
     except Exception as e:
         # XXX mypy says this is incompatible - it is not.
         parser.error(e)  # type: ignore
