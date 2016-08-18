@@ -96,5 +96,6 @@ class Checker:
                             pending_future.cancel()
                         loop.run_until_complete(asyncio.wait(pending, loop=loop))
                         return
+                stop = not pending
 
         await self._on_success(paths)
