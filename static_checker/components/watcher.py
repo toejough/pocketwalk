@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 # XXX Async for blocking calls
 # XXX checks are sagas
 # XXX add unit tests
-def get_mtimes(paths: Sequence[Path]) -> Dict[Path, int]:
+def _get_mtimes(paths: Sequence[Path]) -> Dict[Path, int]:
     """Return the mtimes for the paths."""
     logger.debug("getting mtimes for {}".format(pformat(paths)))
 
@@ -85,7 +85,7 @@ class Watcher:
         """Watch the paths."""
         last_mtimes = {}  # type: Dict[Path, int]
         while True:
-            new_mtimes = get_mtimes(paths)
+            new_mtimes = _get_mtimes(paths)
             changed_paths = _get_changed_paths(last_mtimes, new_mtimes)
             if changed_paths:
                 print("\rFound changes in files:{}\n{}".format(
