@@ -81,10 +81,11 @@ class Watcher:
             logger.exception("Unexpected exception while running 'on_modification' callback from watcher.")
             exit(1)
 
-    def _watch(self, paths: Sequence[Path]) -> None:
+    def _watch(self) -> None:
         """Watch the paths."""
         last_mtimes = {}  # type: Dict[Path, int]
         while True:
+            paths = self._get_paths()
             new_mtimes = _get_mtimes(paths)
             changed_paths = _get_changed_paths(last_mtimes, new_mtimes)
             if changed_paths:
@@ -97,17 +98,14 @@ class Watcher:
             else:
                 _wait()
 
-    def _interruptable_watch(self, paths: Sequence[Path]) -> None:
+    def _interruptable_watch(self) -> None:
         """Watch, interruptable by Ctrl-c."""
         try:
-            self._watch(paths)
+            self._watch()
         except KeyboardInterrupt:
             print("\nReceived Ctrl-c.  Stopping.")
             exit(0)
 
     def watch(self) -> None:
         """Watch the files."""
-        paths = self._get_paths()
-        logger.info("watching {}".format(pformat(paths)))
-
-        self._interruptable_watch(paths)
+        self._interruptable_watch()
