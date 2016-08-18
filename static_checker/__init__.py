@@ -16,12 +16,13 @@ from .thin_types.command import Command
 
 
 # [ Logging ]
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
 
 # XXX Better doc strings
 # XXX make logging level configurable
+# XXX make logging location configurable
 # XXX add unit tests
 # [ Helpers ]
 # XXX mypy bails with an internal error if Sequence[Path] is the return
