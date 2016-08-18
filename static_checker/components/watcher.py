@@ -69,8 +69,6 @@ class Watcher:
         """Watch the paths."""
         last_mtimes = None
         while True:
-            # XXX some minimum wait
-            # XXX waiting/checking indicator
             sys.stdout.flush()
             new_mtimes = get_mtimes(paths)
             if last_mtimes != new_mtimes:
