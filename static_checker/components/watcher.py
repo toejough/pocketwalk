@@ -71,17 +71,24 @@ class Watcher:
         while True:
             # XXX some minimum wait
             # XXX waiting/checking indicator
-            print("Checking files for changes...{}".format(T.clear_eol), end='\r')
+            print("\rChecking files for changes...{}".format(T.clear_eol), end='')
             sys.stdout.flush()
             new_mtimes = get_mtimes(paths)
             if last_mtimes != new_mtimes:
-                print("Found changes...{}".format(T.clear_eol), end='\r')
+                print("\rFound changes...{}".format(T.clear_eol))
                 sys.stdout.flush()
                 self._on_modification()
                 last_mtimes = new_mtimes
             else:
-                print("No changes found.{}".format(T.clear_eol), end='\r')
-                sys.stdout.flush()
+                seconds_left = 3
+                while seconds_left:
+                    print("\rNo changes found.  Waiting {}s...{}".format(
+                        seconds_left,
+                        T.clear_eol
+                    ), end='')
+                    sys.stdout.flush()
+                    sleep(1)
+                    seconds_left -= 1
 
     def _interruptable_watch(self, paths: Sequence[Path]) -> None:
         """Watch, interruptable by Ctrl-c."""
