@@ -25,8 +25,7 @@ logger = logging.getLogger(__name__)
 # XXX make logging location configurable
 # XXX add unit tests
 # [ Helpers ]
-# XXX mypy bails with an internal error if Sequence[Path] is the return
-async def _get_watch_paths():  # type: ignore
+async def _get_watch_paths() -> Sequence[Path]:
     """Return the paths to watch."""
     check_paths = await _get_check_paths()
     config_path = await cli.get_arg('config')
