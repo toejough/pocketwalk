@@ -2,11 +2,19 @@
 
 
 # [ Imports ]
+# [ -Python ]
 import logging
 from pprint import pformat
 from typing import Sequence, Dict, Callable
 from pathlib import Path
 from time import sleep
+import sys
+# [ -Third Party ]
+import blessed
+
+
+# [ Terminal ]
+T = blessed.Terminal()
 
 
 # [ Logging ]
@@ -63,10 +71,17 @@ class Watcher:
         while True:
             # XXX some minimum wait
             # XXX waiting/checking indicator
+            print("Checking files for changes...{}".format(T.clear_eol), end='\r')
+            sys.stdout.flush()
             new_mtimes = get_mtimes(paths)
             if last_mtimes != new_mtimes:
+                print("Found changes...{}".format(T.clear_eol), end='\r')
+                sys.stdout.flush()
                 self._on_modification()
                 last_mtimes = new_mtimes
+            else:
+                print("No changes found.{}".format(T.clear_eol), end='\r')
+                sys.stdout.flush()
 
     def _interruptable_watch(self, paths: Sequence[Path]) -> None:
         """Watch, interruptable by Ctrl-c."""
