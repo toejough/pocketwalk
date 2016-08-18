@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 # XXX Better doc strings
+# XXX don't commit if no changes.
 # XXX show user actual changes
 # XXX print the file being checked
 # XXX Bump logging to warning
@@ -40,8 +41,22 @@ def get_commands() -> Sequence[Command]:
 def commit(paths: Sequence[Path]) -> None:
     """Commit the current repo."""
     logger.info('committing...')
+    status_lines = run('git', ['status', '--porcelain']).output.splitlines()
+    if not status_lines:
+        return
+    new_file_lines = [l for l in status_lines if l.startswith('??')]
+    new_path_strings = [v for l in new_file_lines for k, v in [l.split()]]
     for path in paths:
-        run('git', ['add', str(path)])
+        path_string = str(path)
+        if path_string in new_path_strings:
+            run('git', ['add', path_string])
+    if new_path_strings:
+        status_lines = run('git', ['status', '--porcelain']).output.splitlines()
+        if not status_lines:
+            return
+    modified_file_lines = [l for l in status_lines if not l.startswith('??')]
+    if not modified_file_lines:
+        return
     message = input('commit message: ')
     run('git', ['commit', '-am', message])
 
