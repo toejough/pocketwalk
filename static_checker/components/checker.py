@@ -6,6 +6,7 @@
 import logging
 from typing import Sequence, Callable
 from pathlib import Path
+import sys
 # [ -Project ]
 from ..interactors.runner import run
 from ..thin_types.command import Command
@@ -53,8 +54,14 @@ class Checker:
             # XXX bold current command
             # XXX normal old command
             args = command.args + path_strings
+            print("running {}...".format(command.command), end='')
+            sys.stdout.flush()
             result = run(command.command, args)
+            report_result = 'pass' if result.success else 'fail'
+            print(report_result)
             if not result.success:
+                print("{} output:".format(command.command))
+                print(result.output)
                 return
 
         self._on_success(paths)

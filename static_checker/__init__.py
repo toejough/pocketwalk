@@ -16,21 +16,28 @@ from .thin_types.command import Command
 
 
 # [ Logging ]
-logging.basicConfig(level=logging.WARN)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 # XXX Better doc strings
-# XXX watch the config file by default
+# XXX make logging level configurable
 # XXX add unit tests
 # [ Helpers ]
-def get_paths() -> Sequence[Path]:
-    """Return the paths to watch/check."""
-    # XXX rename get_config to just get
+# XXX mypy bails with an internal error if Sequence[Path] is the return
+def _get_watch_paths():  # type: ignore
+    """Return the paths to watch."""
+    check_paths = _get_check_paths()
+    config_path = cli.get_arg('config')
+    return [*check_paths, config_path]
+
+
+def _get_check_paths() -> Sequence[Path]:
+    """Return the paths to check."""
     return [Path(p) for p in config.get_config('paths')]
 
 
-def get_commands() -> Sequence[Command]:
+def _get_commands() -> Sequence[Command]:
     """Return the commands to run."""
     return [Command(*c) for c in config.get_config('checks')]
 
@@ -41,8 +48,8 @@ def main() -> None:
     logger.info('Running static checker...')
 
     checker = Checker(
-        get_commands=get_commands,
-        get_paths=get_paths,
+        get_commands=_get_commands,
+        get_paths=_get_check_paths,
         on_success=commit
     )
 
@@ -50,7 +57,7 @@ def main() -> None:
         checker.run()
     else:
         Watcher(
-            get_paths=get_paths,
+            get_paths=_get_watch_paths,
             on_modification=checker.run
         ).watch()
 

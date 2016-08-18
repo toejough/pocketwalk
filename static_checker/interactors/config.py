@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 # XXX Better doc strings
+# XXX rename get_config to just get
 # XXX add unit tests
 # [ Helper Helpers ]
 def get_config(section: str) -> Any:
