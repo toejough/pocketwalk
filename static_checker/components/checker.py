@@ -8,6 +8,8 @@ from typing import Sequence, Callable, Awaitable
 from pathlib import Path
 import sys
 from types import SimpleNamespace
+import asyncio
+import concurrent.futures
 # [ -Third Party ]
 import a_sync
 # [ -Project ]
@@ -33,6 +35,15 @@ def report_result(command: str, result: SimpleNamespace) -> None:
     if not result.success:
         print("{} output:".format(command))
         print(result.output)
+
+
+async def _run_single(command: Command, path_strings: Sequence[str]) -> SimpleNamespace:
+    """Run single command."""
+    args = command.args + path_strings
+    await a_sync.run(report_part, "running {}...".format(command.command))
+    result = await run(command.command, args)
+    await a_sync.run(report_result, command.command, result)
+    return result
 
 
 # [ API ]
@@ -68,15 +79,21 @@ class Checker:
         paths = await self._get_paths()
         path_strings = tuple(str(p) for p in paths)
 
-        for command in await self._get_commands():
-            # XXX colored check/x
-            # XXX bold current command
-            # XXX normal old command
-            args = command.args + path_strings
-            await a_sync.run(report_part, "running {}...".format(command.command))
-            result = await run(command.command, args)
-            await a_sync.run(report_result, command.command, result)
-            if not result.success:
-                return
+        with a_sync.idle_event_loop() as loop:
+            tasks = []
+            stop = False
+            for command in await self._get_commands():
+                # XXX colored check/x
+                # XXX bold current command
+                # XXX normal old command
+                tasks.append(loop.create_task(_run_single(command, path_strings)))
+            while not stop:
+                done, pending = loop.run_until_complete(asyncio.wait(tasks, loop=loop, return_when=concurrent.futures.FIRST_COMPLETED))
+                for future in done:
+                    if not future.result().success:
+                        for pending_future in pending:
+                            pending_future.cancel()
+                        loop.run_until_complete(asyncio.wait(pending, loop=loop))
+                        return
 
         await self._on_success(paths)
