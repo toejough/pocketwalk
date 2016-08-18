@@ -16,12 +16,11 @@ from .thin_types.command import Command
 
 
 # [ Logging ]
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
 
 # XXX Better doc strings
-# XXX Bump logging to warning
 # XXX watch the config file by default
 # XXX add unit tests
 # [ Helpers ]
