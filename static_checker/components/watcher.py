@@ -10,6 +10,7 @@ from pathlib import Path
 from time import sleep
 import sys
 import asyncio
+import concurrent.futures
 # [ -Third Party ]
 import blessed
 import a_sync
@@ -25,7 +26,6 @@ logger = logging.getLogger(__name__)
 
 # [ Helpers ]
 # XXX Better doc strings
-# XXX checks are sagas
 # XXX add unit tests
 async def _get_mtimes(paths: Sequence[Path]) -> Dict[Path, float]:
     """Return the mtimes for the paths."""
@@ -80,6 +80,8 @@ class Watcher:
         """Safe version of _unsafe_on_modification."""
         try:
             await a_sync.run(self._unsafe_on_modification)
+        except concurrent.futures.CancelledError:
+            pass
         except Exception:
             logger.exception("Unexpected exception while running 'on_modification' callback from watcher.")
             exit(1)
@@ -87,6 +89,7 @@ class Watcher:
     async def _watch(self) -> None:
         """Watch the paths."""
         last_mtimes = {}  # type: Dict[Path, float]
+        running_checks = None
         while True:
             paths = await self._get_paths()
             new_mtimes = await _get_mtimes(paths)
@@ -96,7 +99,11 @@ class Watcher:
                     T.clear_eol,
                     pformat([str(p) for p in changed_paths])
                 ))
-                await self._on_modification()
+                if running_checks:
+                    if running_checks.cancel():
+                        await a_sync.run(print, "Cancelled running checks due to mid-check changes.")
+                # XXX mypy says ensure_future is not a thing
+                running_checks = asyncio.ensure_future(self._on_modification())  # type: ignore
                 last_mtimes = new_mtimes
             else:
                 await a_sync.run(_wait)
