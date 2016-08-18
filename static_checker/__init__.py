@@ -21,8 +21,6 @@ logger = logging.getLogger(__name__)
 
 
 # XXX Better doc strings
-# XXX don't commit if no changes.
-# XXX show user actual changes
 # XXX print the file being checked
 # XXX Bump logging to warning
 # XXX add unit tests
@@ -57,6 +55,7 @@ def commit(paths: Sequence[Path]) -> None:
     modified_file_lines = [l for l in status_lines if not l.startswith('??')]
     if not modified_file_lines:
         return
+    print(run('git', ['diff', '--color']).output)
     message = input('commit message: ')
     run('git', ['commit', '-am', message])
 

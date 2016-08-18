@@ -20,9 +20,8 @@ def run(command, args):  # type: ignore
     result = subprocess.run(
         [command, *args],
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-        universal_newlines=True
     )
     return SimpleNamespace(
         success=result.returncode == 0,
-        output=result.stdout
+        output=str(result.stdout, 'utf-8')
     )
