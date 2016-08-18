@@ -34,7 +34,11 @@ async def _run_single(command: Command, path_strings: Sequence[str]) -> SimpleNa
     """Run single command."""
     args = command.args + path_strings
     await a_sync.run(print, "running {}...".format(command.command))
-    result = await run(command.command, args)
+    try:
+        result = await run(command.command, args)
+    except concurrent.futures.CancelledError:
+        await a_sync.run(print, "result for {}: cancelled".format(command.command))
+        raise
     await a_sync.run(report_result, command.command, result)
     return result
 
@@ -80,7 +84,6 @@ class Checker:
                 # XXX colored check/x
                 # XXX bold current command
                 # XXX normal old command
-                # XXX print command result as 'cancelled' when it's cancelled
                 # XXX mypy says asyncio doesn't have ensure_future
                 task = asyncio.ensure_future(_run_single(command, path_strings))  # type: ignore
                 tasks.append(task)
