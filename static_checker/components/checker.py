@@ -7,6 +7,7 @@ import logging
 from typing import Sequence, Callable
 from pathlib import Path
 import sys
+from types import SimpleNamespace
 # [ -Project ]
 from ..interactors.runner import run
 from ..thin_types.command import Command
@@ -14,6 +15,22 @@ from ..thin_types.command import Command
 
 # [ Logging ]
 logger = logging.getLogger(__name__)
+
+
+# [ Helpers ]
+def report_part(part: str) -> None:
+    """Report some partial data (no newline)."""
+    print(part, end='')
+    sys.stdout.flush()
+
+
+def report_result(command: str, result: SimpleNamespace) -> None:
+    """Report the result."""
+    outcome = 'pass' if result.success else 'fail'
+    print(outcome)
+    if not result.success:
+        print("{} output:".format(command))
+        print(result.output)
 
 
 # [ API ]
@@ -49,19 +66,14 @@ class Checker:
         path_strings = tuple(str(p) for p in paths)
 
         for command in self._get_commands():
-            # XXX status output
             # XXX colored check/x
             # XXX bold current command
             # XXX normal old command
             args = command.args + path_strings
-            print("running {}...".format(command.command), end='')
-            sys.stdout.flush()
+            report_part("running {}...".format(command.command))
             result = run(command.command, args)
-            report_result = 'pass' if result.success else 'fail'
-            print(report_result)
+            report_result(command.command, result)
             if not result.success:
-                print("{} output:".format(command.command))
-                print(result.output)
                 return
 
         self._on_success(paths)
