@@ -80,22 +80,24 @@ class Checker:
         path_strings = tuple(str(p) for p in paths)
 
         commands = await self._get_commands()
-        with a_sync.idle_event_loop() as loop:
-            tasks = []
-            stop = False
-            for command in commands:
-                # XXX colored check/x
-                # XXX bold current command
-                # XXX normal old command
-                tasks.append(loop.create_task(_run_single(command, path_strings)))
-            while not stop:
-                done, pending = loop.run_until_complete(asyncio.wait(tasks, loop=loop, return_when=concurrent.futures.FIRST_COMPLETED))
-                for future in done:
-                    if not future.result().success:
-                        for pending_future in pending:
-                            pending_future.cancel()
-                        loop.run_until_complete(asyncio.wait(pending, loop=loop))
-                        return
-                stop = not pending
+        tasks = []
+        stop = False
+        for command in commands:
+            # XXX colored check/x
+            # XXX bold current command
+            # XXX normal old command
+            # XXX mypy says asyncio doesn't have ensure_future
+            task = asyncio.ensure_future(_run_single(command, path_strings))  # type: ignore
+            tasks.append(task)
+        while not stop:
+            done, pending = await asyncio.wait(tasks, return_when=concurrent.futures.FIRST_COMPLETED)
+            for future in done:
+                if not future.result().success:
+                    for pending_future in pending:
+                        pending_future.cancel()
+                    # XXX mypy says wait is wrong: incompatible type Set[Future[Any]]; expected List[Task[None]]
+                    await asyncio.wait(pending)  # type: ignore
+                    return
+            stop = not pending
 
         await self._on_success(paths)

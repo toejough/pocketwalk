@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 # [ Helpers ]
 # XXX mypy freaks out here and backtraces if I type command as a str.
+# XXX use asyncio subprocess
 # XXX add unit tests
 async def run(command, args):  # type: ignore
     """Run the command."""
