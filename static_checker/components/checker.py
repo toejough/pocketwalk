@@ -110,8 +110,8 @@ class Checker:
             all_passed = _run_parallel_checks(tasks)
         except concurrent.futures.CancelledError:
             logger.info("checking cancelled - cancelling running checks")
-            for task in tasks:
-                task.cancel()
+            # XXX mypy says asyncio doesn't have gather
+            asyncio.gather(tasks).cancel()  # type: ignore
             raise
 
         if all_passed:
