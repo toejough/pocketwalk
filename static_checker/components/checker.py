@@ -88,6 +88,9 @@ class Checker:
         """Run the passed in 'on_success' function safely."""
         try:
             await a_sync.run(self._unsafe_on_success, paths)
+        except concurrent.futures.CancelledError:
+            logger.info("success task cancelled - new changes detected.")
+            raise
         except Exception:
             logger.exception("Unexpected exception while running 'on_success' callback from checker.")
             exit(1)

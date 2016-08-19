@@ -6,6 +6,7 @@
 from pathlib import Path
 import logging
 from typing import Sequence
+import concurrent.futures
 # [ -Third Party ]
 import a_sync
 # [ -Project ]
@@ -48,5 +49,8 @@ async def commit(paths: Sequence[Path]) -> None:
     if not modified_file_lines:
         return
     await a_sync.run(print, (await run('git', ['diff', '--color'])).output)
-    message = input('commit message: ')
+    try:
+        message = await a_sync.run(input, 'commit message: ')
+    except concurrent.futures.CancelledError:
+        raise
     await run('git', ['commit', '-am', message])
