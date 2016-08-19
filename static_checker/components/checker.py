@@ -4,7 +4,7 @@
 # [ Imports ]
 # [ -Python ]
 import logging
-from typing import Sequence, Callable, Awaitable, Set, List
+from typing import Sequence, Callable, Awaitable, List, Iterable
 from pathlib import Path
 from types import SimpleNamespace
 import asyncio
@@ -43,7 +43,7 @@ async def _run_single(command: Command, path_strings: Sequence[str]) -> SimpleNa
     return result
 
 
-async def _cancel_checks(pending: Set[asyncio.Future]) -> None:
+async def _cancel_checks(pending: Iterable[asyncio.Future]) -> None:
     """Cancel the given checks."""
     print("Cancelling pending checks due to check failure.")
     # XXX mypy says there is no gather
@@ -66,6 +66,9 @@ async def _run_parallel_checks(tasks: List[asyncio.Task]) -> bool:
 
 # [ API ]
 # XXX Better doc strings
+# XXX colored check/x
+# XXX bold current command
+# XXX normal old command
 # XXX add unit tests
 class Checker:
     """Checker."""
@@ -99,21 +102,15 @@ class Checker:
 
         commands = await self._get_commands()
         tasks = []
+        for command in commands:
+            # XXX mypy says asyncio doesn't have ensure_future
+            task = asyncio.ensure_future(_run_single(command, path_strings))  # type: ignore
+            tasks.append(task)
         try:
-            for command in commands:
-                # XXX colored check/x
-                # XXX bold current command
-                # XXX normal old command
-                # XXX mypy says asyncio doesn't have ensure_future
-                task = asyncio.ensure_future(_run_single(command, path_strings))  # type: ignore
-                tasks.append(task)
             all_passed = await _run_parallel_checks(tasks)
         except concurrent.futures.CancelledError:
             logger.info("checking cancelled - cancelling running checks")
-            # XXX mypy says asyncio doesn't have gather
-            gathered = asyncio.gather(*tasks)  # type: ignore
-            gathered.cancel()
-            await asyncio.wait_for(gathered, timeout=None)
+            await _cancel_checks(tasks)
             raise
 
         if all_passed:
