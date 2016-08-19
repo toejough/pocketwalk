@@ -45,11 +45,12 @@ async def _run_single(command: Command, path_strings: Sequence[str]) -> SimpleNa
 
 async def _cancel_checks(pending: Iterable[asyncio.Future]) -> None:
     """Cancel the given checks."""
-    print("Cancelling pending checks due to check failure.")
-    # XXX mypy says there is no gather
-    gathered = asyncio.gather(*pending)  # type: ignore
-    gathered.cancel()
-    await asyncio.wait_for(gathered, timeout=None)
+    if pending and not all(p.done() for p in pending):
+        print("Cancelling pending checks due to check failure.")
+        # XXX mypy says there is no gather
+        gathered = asyncio.gather(*pending)  # type: ignore
+        gathered.cancel()
+        await asyncio.wait_for(gathered, timeout=None)
 
 
 async def _run_parallel_checks(tasks: List[asyncio.Task]) -> bool:

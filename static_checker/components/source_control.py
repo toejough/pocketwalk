@@ -5,10 +5,11 @@
 # [ -Python ]
 from pathlib import Path
 import logging
+import sys
 from typing import Sequence
 import concurrent.futures
-# [ -Third Party ]
-import a_sync
+import asyncio
+import select
 # [ -Project ]
 from ..interactors.runner import run
 
@@ -39,6 +40,17 @@ async def _add_missing_paths(paths: Sequence[Path], status_lines: Sequence[str])
             await run('git', ['add', path_string])
 
 
+async def async_input(prompt: str) -> str:
+    """Async input prompt."""
+    readable = []  # type: List[int]
+    print(prompt, end='')
+    sys.stdout.flush()
+    while not readable:
+        readable, writeable, executable = select.select([sys.stdin], [], [], 0)
+        await asyncio.sleep(0.1)
+    return input()
+
+
 # [ API ]
 async def commit(paths: Sequence[Path]) -> None:
     """Commit the current repo."""
@@ -50,7 +62,8 @@ async def commit(paths: Sequence[Path]) -> None:
         return
     print((await run('git', ['diff', '--color'])).output)
     try:
-        message = await a_sync.run(input, 'commit message: ')
+        message = await async_input('commit message: ')
+        # XXX use selectors to wait for input to be ready to grab.
     except concurrent.futures.CancelledError:
         raise
     await run('git', ['commit', '-am', message])
