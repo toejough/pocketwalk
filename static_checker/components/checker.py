@@ -93,10 +93,8 @@ class Checker:
                     if not future.result().success:
                         print("Cancelling pending checks due to check failure.")
                         # XXX mypy says there is no gather
-                        await asyncio.gather(pending).cancel()  # type: ignore
-                        # XXX mypy says wait is wrong: incompatible type Set[Future[Any]]; expected List[Task[None]]
-                        if pending:
-                            await asyncio.wait(pending)  # type: ignore
+                        gathered = asyncio.gather(pending).cancel()  # type: ignore
+                        await asyncio.wait_for(gathered, timeout=None)
                         return
                 stop = not pending
         except concurrent.futures.CancelledError:
