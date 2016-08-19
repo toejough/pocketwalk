@@ -10,6 +10,9 @@ from typing import Sequence
 import concurrent.futures
 import asyncio
 import select
+import termios
+# # [ -Third Party ]
+# import blessed
 # [ -Project ]
 from ..interactors.runner import run
 
@@ -51,7 +54,7 @@ async def async_input(prompt: str) -> str:
             await asyncio.sleep(0.1)
         except concurrent.futures.CancelledError:
             print("input cancelled due to detected changes.")
-            sys.stdin.flush()
+            termios.tcflush(sys.stdin, termios.TCIFLUSH)
             raise
     return input()
 
