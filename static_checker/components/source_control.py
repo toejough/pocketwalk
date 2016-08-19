@@ -47,7 +47,12 @@ async def async_input(prompt: str) -> str:
     sys.stdout.flush()
     while not readable:
         readable, writeable, executable = select.select([sys.stdin], [], [], 0)
-        await asyncio.sleep(0.1)
+        try:
+            await asyncio.sleep(0.1)
+        except concurrent.futures.CancelledError:
+            print("input cancelled due to detected changes.")
+            sys.stdin.flush()
+            raise
     return input()
 
 
