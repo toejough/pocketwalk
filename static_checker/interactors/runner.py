@@ -8,6 +8,7 @@ from types import SimpleNamespace
 from typing import Sequence
 import asyncio
 import logging
+import concurrent.futures
 
 
 # [ Logging ]
@@ -24,7 +25,11 @@ async def run(command: str, args: Sequence[str]) -> SimpleNamespace:
         command, *args,
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
     )
-    await process.wait()
+    try:
+        await process.wait()
+    except concurrent.futures.CancelledError:
+        process.terminate()
+        raise
     return SimpleNamespace(
         success=process.returncode == 0,
         output=str(await process.stdout.read(), 'utf-8')
