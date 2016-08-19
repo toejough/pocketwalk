@@ -4,7 +4,7 @@
 # [ Imports ]
 # [ -Python ]
 import logging
-from typing import Sequence, Callable, Awaitable
+from typing import Sequence, Callable, Awaitable, Set
 from pathlib import Path
 from types import SimpleNamespace
 import asyncio
@@ -41,6 +41,15 @@ async def _run_single(command: Command, path_strings: Sequence[str]) -> SimpleNa
         raise
     await a_sync.run(report_result, command.command, result)
     return result
+
+
+async def _cancel_checks(pending: Set[asyncio.Future]) -> None:
+    """Cancel the given checks."""
+    print("Cancelling pending checks due to check failure.")
+    # XXX mypy says there is no gather
+    gathered = asyncio.gather(*pending)  # type: ignore
+    gathered.cancel()
+    await asyncio.wait_for(gathered, timeout=None)
 
 
 # [ API ]
@@ -89,13 +98,9 @@ class Checker:
                 tasks.append(task)
             while not stop:
                 done, pending = await asyncio.wait(tasks, return_when=concurrent.futures.FIRST_COMPLETED)
-                for future in done:
-                    if not future.result().success:
-                        print("Cancelling pending checks due to check failure.")
-                        # XXX mypy says there is no gather
-                        gathered = asyncio.gather(pending).cancel()  # type: ignore
-                        await asyncio.wait_for(gathered, timeout=None)
-                        return
+                if not all(f.result().success for f in done):
+                    await _cancel_checks(pending)
+                    return
                 stop = not pending
         except concurrent.futures.CancelledError:
             logger.info("checking cancelled - cancelling running checks")
