@@ -4,7 +4,7 @@
 # [ Imports ]
 # [ -Python ]
 import logging
-from typing import Sequence, Callable, Awaitable, Set
+from typing import Sequence, Callable, Awaitable, Set, List
 from pathlib import Path
 from types import SimpleNamespace
 import asyncio
@@ -52,6 +52,18 @@ async def _cancel_checks(pending: Set[asyncio.Future]) -> None:
     await asyncio.wait_for(gathered, timeout=None)
 
 
+async def _run_parallel_checks(tasks: List[asyncio.Task]) -> bool:
+    """Run the checks in parallel."""
+    all_done = False
+    while not all_done:
+        done, pending = await asyncio.wait(tasks, return_when=concurrent.futures.FIRST_COMPLETED)
+        if not all(f.result().success for f in done):
+            await _cancel_checks(pending)
+            return False
+        all_done = not pending
+    return True
+
+
 # [ API ]
 # XXX Better doc strings
 # XXX add unit tests
@@ -87,7 +99,6 @@ class Checker:
 
         commands = await self._get_commands()
         tasks = []
-        stop = False
         try:
             for command in commands:
                 # XXX colored check/x
@@ -96,16 +107,12 @@ class Checker:
                 # XXX mypy says asyncio doesn't have ensure_future
                 task = asyncio.ensure_future(_run_single(command, path_strings))  # type: ignore
                 tasks.append(task)
-            while not stop:
-                done, pending = await asyncio.wait(tasks, return_when=concurrent.futures.FIRST_COMPLETED)
-                if not all(f.result().success for f in done):
-                    await _cancel_checks(pending)
-                    return
-                stop = not pending
+            all_passed = _run_parallel_checks(tasks)
         except concurrent.futures.CancelledError:
             logger.info("checking cancelled - cancelling running checks")
             for task in tasks:
                 task.cancel()
             raise
 
-        await self._on_success(paths)
+        if all_passed:
+            await self._on_success(paths)
