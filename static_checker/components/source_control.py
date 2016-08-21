@@ -56,7 +56,7 @@ async def async_input(prompt: str) -> str:
             print("input cancelled due to detected changes.")
             termios.tcflush(sys.stdin, termios.TCIFLUSH)
             raise
-    return input()
+    return sys.stdin.readline().rstrip()
 
 
 # [ API ]

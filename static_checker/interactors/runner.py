@@ -29,7 +29,19 @@ async def run(command: str, args: Sequence[str]) -> SimpleNamespace:
         await process.wait()
     except concurrent.futures.CancelledError:
         process.terminate()
+        try:
+            await asyncio.wait_for(process.wait(), timeout=3)
+        except asyncio.TimeoutError:
+            process.kill()
+            try:
+                await asyncio.wait_for(process.wait(), timeout=3)
+            except asyncio.TimeoutError:
+                raise RuntimeError("subprocess for {} did not stop after terminate and kill commands.".format(command))
         raise
+    return SimpleNamespace(
+        success=process.returncode == 0,
+        output=str(await process.stdout.read(), 'utf-8')
+    )
     return SimpleNamespace(
         success=process.returncode == 0,
         output=str(await process.stdout.read(), 'utf-8')

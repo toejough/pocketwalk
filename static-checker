@@ -3,12 +3,40 @@
 
 
 # [ Imports ]
+# [ -Python ]
+import sys
+from time import sleep
+import signal
+import concurrent.futures
 # [ -Third Party ]
 import a_sync
+import asyncio
 # [ -Project ]
 import static_checker
 
 
 # [ Main ]
 if __name__ == "__main__":
-    a_sync.block(static_checker.main)
+    def handler():
+        print('Caught SIGINT.')
+        all_tasks = list(asyncio.Task.all_tasks())
+        print('got tasks.')
+        pending_tasks = [t for t in all_tasks if not t.done()]
+        for task in pending_tasks:
+            task.cancel()
+        print('tasks cancelled.')
+
+    loop = asyncio.get_event_loop()
+    loop.add_signal_handler(signal.SIGINT, handler)
+    try:
+        a_sync.block(static_checker.main)
+    except concurrent.futures.CancelledError:
+        print("run cancelled.")
+    finally:
+        print('performing final cleanup.')
+        loop = asyncio.get_event_loop()
+        print('got loop.')
+        print('all tasks completed')
+        sys.stdout.flush()
+        loop.close()
+        print('loop closed')

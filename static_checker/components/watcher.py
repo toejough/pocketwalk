@@ -44,13 +44,13 @@ async def _get_mtimes(paths: Sequence[Path]) -> Dict[Path, float]:
     return mtimes
 
 
-def _wait(*, silently: bool) -> None:
+async def _wait(*, silently: bool) -> None:
     """Wait."""
     if not silently:
         print("\rWaiting for changes...{}".format(
             T.clear_eol
         ), end='')
-    sleep(1)
+    await asyncio.sleep(1)
 
 
 def _get_changed_paths(last_mtimes: Dict[Path, float], new_mtimes: Dict[Path, float]) -> Sequence[Path]:
@@ -90,24 +90,37 @@ class Watcher:
         """Watch the paths."""
         last_mtimes = {}  # type: Dict[Path, float]
         running_checks = None
-        while True:
-            paths = await self._get_paths()
-            new_mtimes = await _get_mtimes(paths)
-            changed_paths = _get_changed_paths(last_mtimes, new_mtimes)
-            if changed_paths:
-                await a_sync.run(print, "\rFound changes in files:{}\n{}".format(
-                    T.clear_eol,
-                    pformat([str(p) for p in changed_paths])
-                ))
-                if running_checks:
-                    if running_checks.cancel():
-                        await a_sync.run(print, "Cancelled running checks due to mid-check changes.")
-                # XXX mypy says ensure_future is not a thing
-                running_checks = asyncio.ensure_future(self._on_modification())  # type: ignore
-                last_mtimes = new_mtimes
-            else:
-                silently = running_checks and not running_checks.done()
-                await a_sync.run(_wait, silently=silently)
+        try:
+            while True:
+                paths = await self._get_paths()
+                new_mtimes = await _get_mtimes(paths)
+                changed_paths = _get_changed_paths(last_mtimes, new_mtimes)
+                if changed_paths:
+                    print("\rFound changes in files:{}\n{}".format(
+                        T.clear_eol,
+                        pformat([str(p) for p in changed_paths])
+                    ))
+                    if running_checks:
+                        if running_checks.cancel():
+                            print("Cancelled running checks due to mid-check changes.")
+                    # XXX mypy says ensure_future is not a thing
+                    running_checks = asyncio.ensure_future(self._on_modification())  # type: ignore
+                    last_mtimes = new_mtimes
+                else:
+                    if running_checks and running_checks.done():
+                        e = running_checks.exception()
+                        if e:
+                            raise e
+                    # XXX cancel running check here if cancelled?
+                    silently = running_checks and not running_checks.done()
+                    await _wait(silently=silently)
+                    # await a_sync.run(_wait, silently=silently)
+        except (concurrent.futures.CancelledError, KeyboardInterrupt):
+            if running_checks:
+                print("running check cancelled")
+                running_checks.cancel()
+                asyncio.wait_for(running_checks, timeout=None)
+            raise
 
     async def _interruptable_watch(self) -> None:
         """Watch, interruptable by Ctrl-c."""

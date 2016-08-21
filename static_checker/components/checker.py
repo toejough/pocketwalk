@@ -56,12 +56,17 @@ async def _cancel_checks(pending: Iterable[asyncio.Future]) -> None:
 async def _run_parallel_checks(tasks: List[asyncio.Task]) -> bool:
     """Run the checks in parallel."""
     all_done = False
-    while not all_done:
-        done, pending = await asyncio.wait(tasks, return_when=concurrent.futures.FIRST_COMPLETED)
-        if not all(f.result().success for f in done):
-            await _cancel_checks(pending)
-            return False
-        all_done = not pending
+    try:
+        while not all_done:
+            done, pending = await asyncio.wait(tasks, return_when=concurrent.futures.FIRST_COMPLETED)
+            if not all(f.result().success for f in done):
+                await _cancel_checks(pending)
+                return False
+            all_done = not pending
+    except KeyboardInterrupt:
+        print("caught interrupt in async.")
+        await _cancel_checks(tasks)
+        raise
     return True
 
 
@@ -106,14 +111,19 @@ class Checker:
 
         commands = await self._get_commands()
         tasks = []
-        for command in commands:
-            # XXX mypy says asyncio doesn't have ensure_future
-            task = asyncio.ensure_future(_run_single(command, path_strings))  # type: ignore
-            tasks.append(task)
         try:
-            all_passed = await _run_parallel_checks(tasks)
-        except concurrent.futures.CancelledError:
-            logger.info("checking cancelled - cancelling running checks")
+            for command in commands:
+                # XXX mypy says asyncio doesn't have ensure_future
+                task = asyncio.ensure_future(_run_single(command, path_strings))  # type: ignore
+                tasks.append(task)
+            try:
+                all_passed = await _run_parallel_checks(tasks)
+            except concurrent.futures.CancelledError:
+                logger.info("checking cancelled - cancelling running checks")
+                await _cancel_checks(tasks)
+                raise
+        except KeyboardInterrupt:
+            print("check interrupted.")
             await _cancel_checks(tasks)
             raise
 
