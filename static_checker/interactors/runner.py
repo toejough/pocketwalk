@@ -31,11 +31,13 @@ async def run(command: str, args: Sequence[str]) -> SimpleNamespace:
         process.terminate()
         try:
             await asyncio.wait_for(process.wait(), timeout=3)
-        except asyncio.TimeoutError:
+        # XXX mypy says no such error
+        except asyncio.TimeoutError:  # type: ignore
             process.kill()
             try:
                 await asyncio.wait_for(process.wait(), timeout=3)
-            except asyncio.TimeoutError:
+            # XXX mypy says no such error
+            except asyncio.TimeoutError:  # type: ignore
                 raise RuntimeError("subprocess for {} did not stop after terminate and kill commands.".format(command))
         raise
     return SimpleNamespace(
