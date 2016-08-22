@@ -112,14 +112,9 @@ class Checker:
                 # XXX mypy says asyncio doesn't have ensure_future
                 task = asyncio.ensure_future(_run_single(command, path_strings))  # type: ignore
                 tasks.append(task)
-            try:
-                all_passed = await _run_parallel_checks(tasks)
-            except concurrent.futures.CancelledError:
-                logger.info("checking cancelled - cancelling running checks")
-                await _cancel_checks(tasks)
-                raise
-        except KeyboardInterrupt:
-            print("check interrupted.")
+            all_passed = await _run_parallel_checks(tasks)
+        except concurrent.futures.CancelledError:
+            logger.info("checking cancelled - cancelling running checks")
             await _cancel_checks(tasks)
             raise
 
