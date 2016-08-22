@@ -47,6 +47,17 @@ async def _get_commands() -> Sequence[Command]:
     return [Command(*c) for c in await config.get_config('checks')]
 
 
+async def _check(checker: Checker) -> None:
+    """Check the files."""
+    if await cli.get_arg('once'):
+        await checker.run()
+    else:
+        await Watcher(
+            get_paths=_get_watch_paths,
+            on_modification=checker.run
+        ).watch()
+
+
 def handler() -> None:
     """Handle SIGINT by cancelling everything."""
     print('\nCaught SIGINT.')
@@ -67,13 +78,7 @@ async def _unfriendly_main() -> None:
         on_success=commit
     )
 
-    if await cli.get_arg('once'):
-        await checker.run()
-    else:
-        await Watcher(
-            get_paths=_get_watch_paths,
-            on_modification=checker.run
-        ).watch()
+    await _check(checker)
 
 
 # [ Main ]
@@ -84,7 +89,7 @@ def main() -> None:
     try:
         a_sync.block(_unfriendly_main)
     except concurrent.futures.CancelledError:
-        print("checking cancelled.")
+        print("Checking stopped.")
     finally:
         loop = asyncio.get_event_loop()
         loop.close()
