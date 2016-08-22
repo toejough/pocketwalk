@@ -46,27 +46,23 @@ async def _run_single(command: Command, path_strings: Sequence[str]) -> SimpleNa
 async def _cancel_checks(pending: Iterable[asyncio.Future]) -> None:
     """Cancel the given checks."""
     if pending and not all(p.done() for p in pending):
-        print("Cancelling pending checks due to check failure.")
+        print("Cancelling running checks...")
         # XXX mypy says there is no gather
         gathered = asyncio.gather(*pending)  # type: ignore
         gathered.cancel()
+        # XXX shield from cancellation, since we're waiting for cancellation completion?
         await asyncio.wait_for(gathered, timeout=None)
 
 
 async def _run_parallel_checks(tasks: List[asyncio.Task]) -> bool:
     """Run the checks in parallel."""
     all_done = False
-    try:
-        while not all_done:
-            done, pending = await asyncio.wait(tasks, return_when=concurrent.futures.FIRST_COMPLETED)
-            if not all(f.result().success for f in done):
-                await _cancel_checks(pending)
-                return False
-            all_done = not pending
-    except KeyboardInterrupt:
-        print("caught interrupt in async.")
-        await _cancel_checks(tasks)
-        raise
+    while not all_done:
+        done, pending = await asyncio.wait(tasks, return_when=concurrent.futures.FIRST_COMPLETED)
+        if not all(f.result().success for f in done):
+            await _cancel_checks(pending)
+            return False
+        all_done = not pending
     return True
 
 
