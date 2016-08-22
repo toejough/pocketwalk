@@ -25,6 +25,7 @@ async def run(command: str, args: Sequence[str]) -> SimpleNamespace:
         command, *args,
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
     )
+    # XXX way too much nesting here
     try:
         await process.wait()
     except concurrent.futures.CancelledError:
