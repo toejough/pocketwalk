@@ -110,9 +110,6 @@ class Watcher:
                     silently = running_checks and not running_checks.done()
                     await _wait(silently=silently)
                     # await a_sync.run(_wait, silently=silently)
-        except (concurrent.futures.CancelledError, KeyboardInterrupt):
-            if running_checks:
-                running_checks.cancel()
-                print("running checkers cancelled")
-                asyncio.wait_for(running_checks, timeout=None)
+        except concurrent.futures.CancelledError:
+            print("Stopped watching files.")
             raise

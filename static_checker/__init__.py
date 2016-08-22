@@ -60,12 +60,13 @@ async def _check(checker: Checker) -> None:
 
 def handler() -> None:
     """Handle SIGINT by cancelling everything."""
-    print('\nCaught SIGINT.')
+    print('\nCaught Ctrl-c.')
     all_tasks = list(asyncio.Task.all_tasks())
     pending_tasks = [t for t in all_tasks if not t.done()]
-    for task in pending_tasks:
-        task.cancel()
-    print('Winding down...')
+    if pending_tasks:
+        print('Winding down...')
+        for task in pending_tasks:
+            task.cancel()
 
 
 async def _unfriendly_main() -> None:
@@ -89,10 +90,15 @@ def main() -> None:
     try:
         a_sync.block(_unfriendly_main)
     except concurrent.futures.CancelledError:
-        print("Checking stopped.")
+        pass
     finally:
+        all_tasks = list(asyncio.Task.all_tasks())
+        pending_tasks = [t for t in all_tasks if not t.done()]
         loop = asyncio.get_event_loop()
+        if pending_tasks:
+            loop.run_until_complete(asyncio.wait(pending_tasks))
         loop.close()
+        print("Done.")
 
 
 # satisfy vulture:
