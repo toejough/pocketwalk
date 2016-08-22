@@ -6,6 +6,11 @@
 from pathlib import Path
 import logging
 from typing import Sequence
+import asyncio
+import signal
+import concurrent.futures
+# [ -Third Party ]
+import a_sync
 # [ -Project ]
 from .components.checker import Checker
 from .components.watcher import Watcher
@@ -42,9 +47,18 @@ async def _get_commands() -> Sequence[Command]:
     return [Command(*c) for c in await config.get_config('checks')]
 
 
-# [ Main ]
-async def main() -> None:
-    """Perform the static checking."""
+def handler() -> None:
+    """Handle SIGINT by cancelling everything."""
+    print('\nCaught SIGINT.')
+    all_tasks = list(asyncio.Task.all_tasks())
+    pending_tasks = [t for t in all_tasks if not t.done()]
+    for task in pending_tasks:
+        task.cancel()
+    print('Winding down...')
+
+
+async def _unfriendly_main() -> None:
+    """Not ctrl-c-friendly."""
     logger.info('Running static checker...')
 
     checker = Checker(
@@ -60,6 +74,20 @@ async def main() -> None:
             get_paths=_get_watch_paths,
             on_modification=checker.run
         ).watch()
+
+
+# [ Main ]
+def main() -> None:
+    """Interruptable main func."""
+    loop = asyncio.get_event_loop()
+    loop.add_signal_handler(signal.SIGINT, handler)
+    try:
+        a_sync.block(_unfriendly_main)
+    except concurrent.futures.CancelledError:
+        print("checking cancelled.")
+    finally:
+        loop = asyncio.get_event_loop()
+        loop.close()
 
 
 # satisfy vulture:
