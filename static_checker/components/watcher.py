@@ -85,10 +85,11 @@ class Watcher:
             logger.exception("Unexpected exception while running 'on_modification' callback from watcher.")
             exit(1)
 
-    async def _watch(self) -> None:
+    async def watch(self) -> None:
         """Watch the paths."""
         last_mtimes = {}  # type: Dict[Path, float]
         running_checks = None
+        # XXX way too complex
         try:
             while True:
                 paths = await self._get_paths()
@@ -106,31 +107,12 @@ class Watcher:
                     running_checks = asyncio.ensure_future(self._on_modification())  # type: ignore
                     last_mtimes = new_mtimes
                 else:
-                    if running_checks and running_checks.done():
-                        e = running_checks.exception()
-                        if e:
-                            raise e
-                    # XXX cancel running check here if cancelled?
                     silently = running_checks and not running_checks.done()
                     await _wait(silently=silently)
                     # await a_sync.run(_wait, silently=silently)
         except (concurrent.futures.CancelledError, KeyboardInterrupt):
             if running_checks:
-                print("running check cancelled")
                 running_checks.cancel()
+                print("running checkers cancelled")
                 asyncio.wait_for(running_checks, timeout=None)
             raise
-
-    async def _interruptable_watch(self) -> None:
-        """Watch, interruptable by Ctrl-c."""
-        try:
-            await self._watch()
-        # XXX figure out keyboard interrupt for async - gives nasty bt
-        except KeyboardInterrupt:
-            # no async around this - we're exiting.
-            print("\nReceived Ctrl-c.  Stopping.")
-            exit(0)
-
-    async def watch(self) -> None:
-        """Watch the files."""
-        await self._interruptable_watch()

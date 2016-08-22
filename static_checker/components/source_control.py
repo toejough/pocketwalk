@@ -53,7 +53,7 @@ async def async_input(prompt: str) -> str:
         try:
             await asyncio.sleep(0.1)
         except concurrent.futures.CancelledError:
-            print("input cancelled due to detected changes.")
+            print("input cancelled...")
             termios.tcflush(sys.stdin, termios.TCIFLUSH)
             raise
     return sys.stdin.readline().rstrip()
