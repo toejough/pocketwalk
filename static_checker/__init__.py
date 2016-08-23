@@ -9,6 +9,9 @@ from typing import Sequence
 import asyncio
 import signal
 import concurrent.futures
+# XXX mypy drops some error about where glob is defined?
+import glob  # type: ignore
+import itertools
 # [ -Third Party ]
 import a_sync
 # [ -Project ]
@@ -39,7 +42,15 @@ async def _get_watch_paths() -> Sequence[Path]:
 
 async def _get_check_paths() -> Sequence[Path]:
     """Return the paths to check."""
-    return [Path(p) for p in await config.get_config('paths')]
+    path_strings = await config.get_config('paths')
+    # XXX mypy says no 'recursive' arg for glob.
+    unglobbed_path_strings = []
+    for this_path_string in path_strings:
+        unglobbed_path_list = glob.glob(this_path_string, recursive=True)  # type: ignore
+        unglobbed_path_strings.append(unglobbed_path_list)
+    flattened_path_strings = itertools.chain(*unglobbed_path_strings)
+    paths = [Path(p) for p in flattened_path_strings]
+    return paths
 
 
 async def _get_commands() -> Sequence[Command]:

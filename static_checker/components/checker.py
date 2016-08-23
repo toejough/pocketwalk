@@ -33,13 +33,18 @@ def report_result(command: str, result: SimpleNamespace) -> None:
 async def _run_single(command: Command, path_strings: Sequence[str]) -> SimpleNamespace:
     """Run single command."""
     args = command.args + path_strings
-    await a_sync.run(print, "running {}...".format(command.command))
+    print("running {}...".format(command.command))
     try:
         result = await run(command.command, args)
     except concurrent.futures.CancelledError:
-        await a_sync.run(print, "result for {}: cancelled".format(command.command))
+        print("result for {}: cancelled".format(command.command))
         raise
-    await a_sync.run(report_result, command.command, result)
+    except FileNotFoundError:
+        result = SimpleNamespace(
+            success=False,
+            output="cannot run command ({}) - no such executable found.".format(command.command)
+        )
+    report_result(command.command, result)
     return result
 
 
