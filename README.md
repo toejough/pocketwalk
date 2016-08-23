@@ -51,12 +51,32 @@ Successful checks result in a git diff of the current code against the last comm
 ### Git commit
 Successful checks result in a prompt for a commit message, which is used to commit your changes.  Commits are only made if you provide a message - if you don't want to commit a small change, don't.  The tool continues to watch for changes and will cancel the commit and restart the checking/commit process whenever a new modification is discovered.
 
+### Globbing
+Files to watch/check can now be specified in the config file with globs:
+* `*.py` for all python files in a directory
+* `**/*.py` for all python files in all subdirectories
+
+### Arg Customization
+* Checkers are configured like `[command, arg1, arg2, arg3, ...]`.
+* Args are optional - you may simply use `[command]`.
+* Args may include the special symbols `{all}` or `{changed}`
+  * `{all}` will be replaced, as often as it is found, with all of the watched paths
+  * `{changed}` will be replaced, as often as it is found, with the paths changed since the last commit.
+* if no special symbols are found, all of the watched paths are passed at the end of the arg list
+
+For example:
+
+`[command]` and `[command, '{all}']` will both run the command with all of the paths.
+
+`[command, '{changed}']` will only run the command against the changed paths.
+
 
 # Installation
-`git clone https://github.com/toejough/static-checker.git`
+clone the repo: `git clone https://github.com/toejough/static-checker.git`
 
-install python 3 if you don't have it yet:
-`brew install python3`
+switch to the `alpha` branch: `git checkout alpha`
+
+install [python 3.5.2](https://www.python.org/downloads/release/python-352/) or higher if you don't have it yet.  As of this writing, brew doesn't install 3.5.2, just 3.5.1, and the checker uses some types that were only defined in 3.5.2.  `¯\_(ツ)_/¯`
 
 pip install all the third-party libs:
 
@@ -79,7 +99,7 @@ paths:
 
 checks:
     - [vulture]
-    - [prospector]
+    - [prospector, '{changed}']
     - [mypy, -s, --fast-parser, --disallow-untyped-defs]
 ```
 
@@ -88,3 +108,7 @@ Add a config file (named `check.yaml` by default, you can name it anything and p
 Run again: `static-checker`.
 
 If running in the default continuous mode, you stop it with `ctrl-c`.
+
+# Caveats
+* there's no pip module for this yet.  Follow the installation instructions in the "install" section above.
+* there's a problem with mypy's definition of the python `glob` module, so there's a custom `glob.pyi` included in `type_hints` - use it with `MYPYPATH=static_checker/type_hints static-checker` if you are checking the `static-checker` code with mypy.
