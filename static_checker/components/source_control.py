@@ -60,18 +60,23 @@ async def async_input(prompt: str) -> str:
 
 
 # [ API ]
-async def commit(paths: Sequence[Path]) -> None:
+async def commit(paths: Sequence[Path]) -> bool:
     """Commit the current repo."""
     logger.info('committing...')
     status_lines = await _get_status()
     await _add_missing_paths(paths, status_lines)
     modified_file_lines = [l for l in status_lines if not l.startswith('??')]
     if not modified_file_lines:
-        return
+        print("No actual changes made - nothing to commit.")
+        return True
     print((await run('git', ['diff', '--color'])).output)
     try:
-        message = await async_input('commit message: ')
+        print("Files are still being watched, and further changes will cancel this dialog")
+        print("  and re-run the checks, but you may commit the above changes now by")
+        print("  entering a commit message.")
+        print()
+        message = await async_input('> ')
         # XXX use selectors to wait for input to be ready to grab.
     except concurrent.futures.CancelledError:
         raise
-    await run('git', ['commit', '-am', message])
+    return (await run('git', ['commit', '-am', message])).success

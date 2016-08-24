@@ -30,9 +30,32 @@ def report_result(command: str, result: SimpleNamespace) -> None:
         print(result.output)
 
 
-async def _run_single(command: Command, path_strings: Sequence[str]) -> SimpleNamespace:
+async def _run_single(
+    command: Command,
+    all_path_strings: Sequence[str],
+    changed_path_strings: Sequence[str]
+) -> SimpleNamespace:
     """Run single command."""
-    args = command.args + path_strings
+    # XXX abstract the substitution stuff out
+    args = command.args
+    all_symbol = '{all}'
+    changed_symbol = '{changed}'
+    substitution_occurred = False
+    while all_symbol in args:
+        all_index = args.index(all_symbol)
+        before = args[:all_index]
+        after = args[all_index + 1:]
+        args = list(before) + list(all_path_strings) + list(after)
+        substitution_occurred = True
+    while changed_symbol in args:
+        changed_index = args.index(changed_symbol)
+        before = args[:changed_index]
+        after = args[changed_index + 1:]
+        args = list(before) + list(changed_path_strings) + list(after)
+        substitution_occurred = True
+    if not substitution_occurred:
+        args += all_path_strings
+
     print("running {}...".format(command.command))
     try:
         result = await run(command.command, args)
@@ -84,38 +107,46 @@ class Checker:
         self, *,
         get_commands: Callable[[], Awaitable[Sequence[Command]]],
         get_paths: Callable[[], Awaitable[Sequence[Path]]],
-        on_success: Callable[[Sequence[Path]], Awaitable[None]]
+        on_success: Callable[[Sequence[Path]], Awaitable[bool]]
     ) -> None:
         """Init the state."""
         self._get_commands = get_commands
         self._get_paths = get_paths
         self._unsafe_on_success = on_success
+        self._changed_path_strings = []  # type: List[str]
 
-    async def _on_success(self, paths: Sequence[Path]) -> None:
+    async def _on_success(self, paths: Sequence[Path]) -> bool:
         """Run the passed in 'on_success' function safely."""
         try:
-            await a_sync.run(self._unsafe_on_success, paths)
+            result = await a_sync.run(self._unsafe_on_success, paths)
         except concurrent.futures.CancelledError:
             logger.info("success task cancelled - new changes detected.")
             raise
         except Exception:
             logger.exception("Unexpected exception while running 'on_success' callback from checker.")
             exit(1)
+        return result
 
-    # XXX only check changed files for prospector
-    async def run(self) -> None:
+    async def run(self, changed_paths) -> None:
         """Run the checks."""
         logger.info("running the static checkers...")
 
         paths = await self._get_paths()
         path_strings = tuple(str(p) for p in paths)
+        for the_path in changed_paths:
+            the_path_string = str(the_path)
+            if (
+                (the_path_string not in self._changed_path_strings) and
+                the_path_string in path_strings
+            ):
+                self._changed_path_strings.append(the_path_string)
 
         commands = await self._get_commands()
         tasks = []
         try:
             for command in commands:
                 # XXX mypy says asyncio doesn't have ensure_future
-                task = asyncio.ensure_future(_run_single(command, path_strings))  # type: ignore
+                task = asyncio.ensure_future(_run_single(command, path_strings, self._changed_path_strings))  # type: ignore
                 tasks.append(task)
             all_passed = await _run_parallel_checks(tasks)
         except concurrent.futures.CancelledError:
@@ -123,5 +154,8 @@ class Checker:
             await _cancel_checks(tasks)
             raise
 
+        success_action_succeeded = False
         if all_passed:
-            await self._on_success(paths)
+            success_action_succeeded = await self._on_success(paths)
+        if success_action_succeeded:
+            self._changed_path_strings = []

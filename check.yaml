@@ -4,5 +4,5 @@ paths:
 
 checks:
     - [vulture]
-    - [prospector]
+    - [prospector, '{changed}']
     - [mypy, -s, --fast-parser, --disallow-untyped-defs]

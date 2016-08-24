@@ -61,7 +61,7 @@ async def _get_commands() -> Sequence[Command]:
 async def _check(checker: Checker) -> None:
     """Check the files."""
     if await cli.get_arg('once'):
-        await checker.run()
+        await checker.run(_get_watch_paths())
     else:
         await Watcher(
             get_paths=_get_watch_paths,

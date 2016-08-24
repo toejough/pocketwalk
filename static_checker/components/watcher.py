@@ -5,7 +5,7 @@
 # [ -Python ]
 import logging
 from pprint import pformat
-from typing import Sequence, Dict, Callable, Awaitable, Optional
+from typing import Sequence, Dict, Callable, Awaitable, Optional, Any
 from pathlib import Path
 import asyncio
 import concurrent.futures
@@ -54,6 +54,8 @@ async def _wait(*, silently: bool) -> None:
 
 def _get_changed_paths(last_mtimes: Dict[Path, float], new_mtimes: Dict[Path, float]) -> Sequence[Path]:
     """Get the changed paths."""
+    # XXX actually only get the changed paths - verify content changes before returning
+    # XXX ^ will require a separate, special run the very first time (run all, regardless of changes)
     new_paths = [k for k in new_mtimes if k not in last_mtimes]
     maintained_paths = [k for k in last_mtimes if k in new_mtimes]
     modified_paths = [p for p in maintained_paths if new_mtimes[p] != last_mtimes[p]]
@@ -68,16 +70,17 @@ class Watcher:
     def __init__(
         self, *,
         get_paths: Callable[[], Awaitable[Sequence[Path]]],
-        on_modification: Callable[[], Optional[Awaitable[None]]]
+        # XXX clarify and remove unnecessary Any types
+        on_modification: Callable[[Any], Optional[Awaitable[None]]]
     ) -> None:
         """Init the state."""
         self._get_paths = get_paths
         self._unsafe_on_modification = on_modification
 
-    async def _on_modification(self) -> None:
+    async def _on_modification(self, changed_paths: Sequence[Path]) -> None:
         """Safe version of _unsafe_on_modification."""
         try:
-            await a_sync.run(self._unsafe_on_modification)
+            await a_sync.run(self._unsafe_on_modification, changed_paths)
         except concurrent.futures.CancelledError:
             logger.info("Run-checks cancelled.")
             raise
@@ -104,7 +107,7 @@ class Watcher:
                         if running_checks.cancel():
                             print("Cancelled running checks due to mid-check changes.")
                     # XXX mypy says ensure_future is not a thing
-                    running_checks = asyncio.ensure_future(self._on_modification())  # type: ignore
+                    running_checks = asyncio.ensure_future(self._on_modification(changed_paths))  # type: ignore
                     last_mtimes = new_mtimes
                 else:
                     silently = running_checks and not running_checks.done()
