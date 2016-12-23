@@ -39,7 +39,9 @@ async def _add_missing_paths(paths: Sequence[Path], status_lines: Sequence[str])
     new_path_strings = [v for l in new_file_lines for k, v in [l.split()]]
     for path in paths:
         path_string = str(path)
-        if path_string in new_path_strings:
+        if path_string in new_path_strings or (
+            any(nps.endswith('/') and path_string.startswith(nps) for nps in new_path_strings)
+        ):
             await run('git', ['add', path_string])
 
 
@@ -65,6 +67,7 @@ async def commit(paths: Sequence[Path]) -> bool:
     logger.info('committing...')
     status_lines = await _get_status()
     await _add_missing_paths(paths, status_lines)
+    status_lines = await _get_status()
     modified_file_lines = [l for l in status_lines if not l.startswith('??')]
     if not modified_file_lines:
         print("No actual changes made - nothing to commit.")

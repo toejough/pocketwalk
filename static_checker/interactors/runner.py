@@ -45,7 +45,3 @@ async def run(command: str, args: Sequence[str]) -> SimpleNamespace:
         success=process.returncode == 0,
         output=str(await process.stdout.read(), 'utf-8')
     )
-    return SimpleNamespace(
-        success=process.returncode == 0,
-        output=str(await process.stdout.read(), 'utf-8')
-    )

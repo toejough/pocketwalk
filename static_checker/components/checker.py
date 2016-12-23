@@ -25,9 +25,8 @@ def report_result(command: str, result: SimpleNamespace) -> None:
     """Report the result."""
     outcome = 'pass' if result.success else 'fail'
     print('result for {}: {}'.format(command, outcome))
-    if not result.success:
-        print("{} output:".format(command))
-        print(result.output)
+    print("{} output:".format(command))
+    print(result.output)
 
 
 async def _run_single(
