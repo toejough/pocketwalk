@@ -1,0 +1,8 @@
+paths:
+    - static-checker
+    - static_checker/**/*.py
+
+checks:
+    - [vulture]
+    - [prospector, '{changed}']
+    - [mypy, -s, --fast-parser, --disallow-untyped-defs]

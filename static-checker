@@ -1,0 +1,11 @@
+#! /usr/bin/env python3
+"""Static checking."""
+
+
+# [ Imports ]
+import static_checker
+
+
+# [ Main ]
+if __name__ == "__main__":
+    static_checker.main()
