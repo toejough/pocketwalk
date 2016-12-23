@@ -1,15 +1,13 @@
-# static-checker
-A python async static checker.  Dev status: Alpha
-
-Built with python async features.
-
-Built for python static checking, but should work with any tool which accepts a list of file paths at the end of its CLI args, and the files don't have to be python.
+# pocketwalk
+Watch, run, commit.
 
 # What it does (short version)
 
 * watches your code for changes
 * runs static checkers against it
 * commits when all checks pass
+
+The commit tool at the moment is git-only.  If there's enough demand, it can be updated to allow other VCS tools.
 
 # What it does (long version)
 
@@ -72,7 +70,7 @@ For example:
 
 
 # Installation
-clone the repo: `git clone https://github.com/toejough/static-checker.git`
+clone the repo: `git clone https://github.com/toejough/pocketwalk.git`
 
 switch to the `alpha` branch: `git checkout alpha`
 
@@ -85,10 +83,10 @@ pip install all the third-party libs:
 * `pyaml` - python YAML lib
 
 Add the installation dir to your path:
-`export PATH=$PATH:<path-to-static-checker-repo>`
+`export PATH=$PATH:<path-to-pocketwalk-repo>`
 
 # Running
-`static-checker`
+`pocketwalk`
 
 That'll error out telling you you need a config file.
 
@@ -105,10 +103,13 @@ checks:
 
 Add a config file (named `check.yaml` by default, you can name it anything and pass it as a cli arg).
 
-Run again: `static-checker`.
+Run again: `pocketwalk`.
 
 If running in the default continuous mode, you stop it with `ctrl-c`.
 
 # Caveats
 * there's no pip module for this yet.  Follow the installation instructions in the "install" section above.
-* there's a problem with mypy's definition of the python `glob` module, so there's a custom `glob.pyi` included in `type_hints` - use it with `MYPYPATH=static_checker/type_hints static-checker` if you are checking the `static-checker` code with mypy.
+* there's a problem with mypy's definition of the python `glob` module, so there's a custom `glob.pyi` included in `type_hints` - use it with `MYPYPATH=pocketwalk/type_hints pocketwalk` if you are checking the `pocketwalk` code with mypy.
+
+# Naming
+"(watch|check)[er|it]" and other variations have been taken, so I thought I'd make a play on the words "Watch" (pocketwatch) and "Run" (walk).

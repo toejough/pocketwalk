@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 # [ Helpers ]
 def get_parser() -> ArgumentParser:
     """Get arg parser."""
-    parser = ArgumentParser(description="Static checker.")
+    parser = ArgumentParser()
     parser.add_argument(
         '-c', '--config',
         help="Path to the yaml config file to use. [default: %(default)s]",

@@ -1,11 +1,11 @@
 #! /usr/bin/env python3
-"""Static checking."""
+"""Pocketwatch."""
 
 
 # [ Imports ]
-import static_checker
+import pocketwatch
 
 
 # [ Main ]
 if __name__ == "__main__":
-    static_checker.main()
+    pocketwatch.main()
