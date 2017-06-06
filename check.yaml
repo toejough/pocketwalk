@@ -1,8 +1,10 @@
 paths:
-    - static-checker
-    - static_checker/**/*.py
+    - pocketwalk/**/*.py
 
 checks:
     - [vulture]
-    - [prospector, '{changed}']
-    - [mypy, -s, --fast-parser, --disallow-untyped-defs]
+    - [symilar]
+    - [pylint, '{changed}']
+    - [flake8]
+    - [dodgy]
+    - [mypy, --strict]

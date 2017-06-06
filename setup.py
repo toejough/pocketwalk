@@ -35,6 +35,18 @@ setup(
     keywords="watch run commit",
     packages=find_packages(),
     install_requires=['a-sync', 'blessed', 'pyaml'],
+    extras_require={
+        'checkers': [
+            'pylint', 'flake8', 'dodgy', 'vulture',
+            'flake8-docstrings', 'mccabe', 'flake8-import-order',
+            'pep8-naming', 'flake8-bugbear', 'flake8-tidy-imports',
+            'flake8-quotes', 'flake8-commas',
+            'flake8-comprehensions', 'flake8-todo', 'flake8-debugger',
+            'flake8-blind-except', 'flake8-string-format',
+            'flake8-tuple', 'flake8-builtins', 'flake8-coding', 'flake8-deprecated',
+            'flake8-mutable', 'mypy',
+        ],
+    },
     entry_points={
         'console_scripts': [
             'pocketwalk=pocketwalk:main',
