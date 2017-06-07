@@ -1,14 +1,17 @@
+# coding: utf-8
+
+
 """Check the files."""
 
 
 # [ Imports ]
 # [ -Python ]
-import logging
-from typing import Sequence, Callable, Awaitable, List, Iterable
-from pathlib import Path
-from types import SimpleNamespace
 import asyncio
 import concurrent.futures
+import logging
+from pathlib import Path
+from types import SimpleNamespace
+from typing import Awaitable, Callable, Iterable, List, Sequence
 # [ -Third Party ]
 import a_sync
 # [ -Project ]
@@ -24,19 +27,13 @@ logger = logging.getLogger(__name__)
 def report_result(command: str, result: SimpleNamespace) -> None:
     """Report the result."""
     outcome = 'pass' if result.success else 'fail'
-    print('result for {}: {}'.format(command, outcome))
-    print("{} output:".format(command))
+    print('result for {command}: {outcome}'.format(**locals()))
+    print("{command} output:".format(**locals()))
     print(result.output)
 
 
-async def _run_single(
-    command: Command,
-    all_path_strings: Sequence[str],
-    changed_path_strings: Sequence[str]
-) -> SimpleNamespace:
-    """Run single command."""
-    # XXX abstract the substitution stuff out
-    args = command.args
+def _substitute(args, all_path_strings, changed_path_strings):
+    """Substitute arguments."""
     all_symbol = '{all}'
     changed_symbol = '{changed}'
     substitution_occurred = False
@@ -54,17 +51,27 @@ async def _run_single(
         substitution_occurred = True
     if not substitution_occurred:
         args += all_path_strings
+    return args
 
-    print("running {}...".format(command.command))
+
+async def _run_single(
+    command: Command,
+    all_path_strings: Sequence[str],
+    changed_path_strings: Sequence[str],
+) -> SimpleNamespace:
+    """Run single command."""
+    args = _substitute(command.args, all_path_strings, changed_path_strings)
+
+    print("running {command.command}...".format(**locals()))
     try:
         result = await run(command.command, args)
     except concurrent.futures.CancelledError:
-        print("result for {}: cancelled".format(command.command))
+        print("result for {command.command}: cancelled".format(**locals()))
         raise
     except FileNotFoundError:
         result = SimpleNamespace(
             success=False,
-            output="cannot run command ({}) - no such executable found.".format(command.command)
+            output="cannot run command ({command.command}) - no such executable found.".format(**locals()),
         )
     report_result(command.command, result)
     return result
@@ -74,10 +81,9 @@ async def _cancel_checks(pending: Iterable[asyncio.Future]) -> None:
     """Cancel the given checks."""
     if pending and not all(p.done() for p in pending):
         print("Cancelling running checks...")
-        # XXX mypy says there is no gather
+        # mypy says there is no gather
         gathered = asyncio.gather(*pending)  # type: ignore
         gathered.cancel()
-        # XXX shield from cancellation, since we're waiting for cancellation completion?
         await asyncio.wait_for(gathered, timeout=None)
 
 
@@ -94,11 +100,6 @@ async def _run_parallel_checks(tasks: List[asyncio.Task]) -> bool:
 
 
 # [ API ]
-# XXX Better doc strings
-# XXX colored check/x
-# XXX bold current command
-# XXX normal old command
-# XXX add unit tests
 class Checker:
     """Checker."""
 
@@ -106,7 +107,7 @@ class Checker:
         self, *,
         get_commands: Callable[[], Awaitable[Sequence[Command]]],
         get_paths: Callable[[], Awaitable[Sequence[Path]]],
-        on_success: Callable[[Sequence[Path]], Awaitable[bool]]
+        on_success: Callable[[Sequence[Path]], Awaitable[bool]],
     ) -> None:
         """Init the state."""
         self._get_commands = get_commands
@@ -144,7 +145,7 @@ class Checker:
         tasks = []
         try:
             for command in commands:
-                # XXX mypy says asyncio doesn't have ensure_future
+                # mypy says asyncio doesn't have ensure_future
                 task = asyncio.ensure_future(_run_single(command, path_strings, self._changed_path_strings))  # type: ignore
                 tasks.append(task)
             all_passed = await _run_parallel_checks(tasks)
