@@ -1,18 +1,19 @@
+# coding: utf-8
+
+
 """Source Control."""
 
 
 # [ Imports ]
 # [ -Python ]
-from pathlib import Path
-import logging
-import sys
-from typing import Sequence
-import concurrent.futures
 import asyncio
+import concurrent.futures
+import logging
 import select
+import sys
 import termios
-# # [ -Third Party ]
-# import blessed
+from pathlib import Path
+from typing import Sequence
 # [ -Project ]
 from ..interactors.runner import run
 
@@ -21,8 +22,6 @@ from ..interactors.runner import run
 logger = logging.getLogger(__name__)
 
 
-# XXX Better doc strings
-# XXX add unit tests
 # [ Helpers ]
 async def _get_status() -> Sequence[str]:
     """Get repo status."""
@@ -79,7 +78,6 @@ async def commit(paths: Sequence[Path]) -> bool:
         print("  entering a commit message.")
         print()
         message = await async_input('> ')
-        # XXX use selectors to wait for input to be ready to grab.
     except concurrent.futures.CancelledError:
         raise
     return (await run('git', ['commit', '-am', message])).success
