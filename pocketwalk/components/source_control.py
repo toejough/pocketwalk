@@ -8,7 +8,6 @@
 # [ -Python ]
 import asyncio
 import concurrent.futures
-import logging
 import select
 import sys
 import termios
@@ -18,20 +17,14 @@ from typing import Sequence
 from ..interactors.runner import run
 
 
-# [ Logging ]
-logger = logging.getLogger(__name__)
-
-
 # [ Helpers ]
 async def _get_status() -> Sequence[str]:
     """Get repo status."""
-    logger.info('getting status...')
     return (await run('git', ['status', '--porcelain'])).output.splitlines()
 
 
 async def _add_missing_paths(paths: Sequence[Path], status_lines: Sequence[str]) -> None:
     """Add any missing paths to the repo."""
-    logger.info('adding missing paths...')
     if not status_lines:
         return
     new_file_lines = [l for l in status_lines if l.startswith('??')]
@@ -63,7 +56,6 @@ async def async_input(prompt: str) -> str:
 # [ API ]
 async def commit(paths: Sequence[Path]) -> bool:
     """Commit the current repo."""
-    logger.info('committing...')
     status_lines = await _get_status()
     await _add_missing_paths(paths, status_lines)
     status_lines = await _get_status()

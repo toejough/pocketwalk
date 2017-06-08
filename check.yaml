@@ -3,7 +3,7 @@ paths:
 
 checks:
     - [vulture]
-    - [symilar]
+    - [symilar, --ignore-imports]
     - [pylint, '{changed}']
     - [flake8]
     - [dodgy]

@@ -1,0 +1,39 @@
+[flake8]
+# lenient line length
+max-line-length = 120
+
+# ignore specific rules
+ignore = 
+    # ignore strict line length rule
+    E501,
+    # forget inline quotes, because apostrophes are a thing in user strings, but
+    # I want single quotes in non-user strings (like dictionary keys)
+    Q000,
+
+# actively select specific rules/sets
+select = 
+    # bugbear checks
+    B,
+    # complexity checks
+    C,
+    # docstring checks
+    D,
+    # errors
+    E,
+    # pyflakes failures
+    F,
+    # import errors
+    I,
+    # warnings
+    W,
+    # format strings
+    P,
+    # todos
+    T,
+    # quotes
+    Q,
+    # optional bugbear checks
+    B9
+
+# set import order rules
+import-order-style = edited
