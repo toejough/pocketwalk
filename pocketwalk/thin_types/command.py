@@ -11,7 +11,7 @@ class Command:
     def __init__(
         self,
         command: str,
-        *args: str,
+        *args: str
     ) -> None:
         """Init the state."""
         self.command = command

@@ -60,7 +60,7 @@ class Watcher:
     def __init__(
         self, *,
         get_paths: Callable[[], Awaitable[Sequence[Path]]],
-        on_modification: Callable[[Any], Optional[Awaitable[None]]],
+        on_modification: Callable[[Any], Optional[Awaitable[None]]]
     ) -> None:
         """Init the state."""
         self._get_paths = get_paths

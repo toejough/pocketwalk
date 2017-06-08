@@ -104,7 +104,7 @@ class Checker:
         self, *,
         get_commands: Callable[[], Awaitable[Sequence[Command]]],
         get_paths: Callable[[], Awaitable[Sequence[Path]]],
-        on_success: Callable[[Sequence[Path]], Awaitable[bool]],
+        on_success: Callable[[Sequence[Path]], Awaitable[bool]]
     ) -> None:
         """Init the state."""
         self._get_commands = get_commands
