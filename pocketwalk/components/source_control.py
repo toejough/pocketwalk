@@ -43,7 +43,7 @@ async def async_input(prompt: str) -> str:
     print(prompt, end='')
     sys.stdout.flush()
     while not readable:
-        readable, writeable, executable = select.select([sys.stdin], [], [], 0)
+        readable, _writeable, _executable = select.select([sys.stdin], [], [], 0)
         try:
             await asyncio.sleep(0.1)
         except concurrent.futures.CancelledError:

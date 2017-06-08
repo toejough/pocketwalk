@@ -8,7 +8,6 @@
 # [ -Python ]
 import asyncio
 import concurrent.futures
-import logging
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Awaitable, Callable, cast, Iterable, List, Sequence
@@ -19,14 +18,12 @@ from ..interactors.runner import run
 from ..thin_types.command import Command
 
 
-# [ Logging ]
-logger = logging.getLogger(__name__)
-
-
 # [ Helpers ]
-def report_result(command: str, result: SimpleNamespace) -> None:
+# we are using command, but pylint doesn't think so
+def report_result(command: str, result: SimpleNamespace) -> None:  # pylint: disable=unused-argument
     """Report the result."""
-    outcome = 'pass' if result.success else 'fail'
+    # we are using outcome, but pylint doesn't think so
+    outcome = 'pass' if result.success else 'fail'  # pylint: disable=unused-variable
     print('result for {command}: {outcome}'.format(**locals()))
     print("{command} output:".format(**locals()))
     print(result.output)
@@ -120,17 +117,14 @@ class Checker:
         try:
             result = cast(bool, await a_sync.run(self._unsafe_on_success, paths))
         except concurrent.futures.CancelledError:
-            logger.info("success task cancelled - new changes detected.")
             raise
-        except Exception:
-            logger.exception("Unexpected exception while running 'on_success' callback from checker.")
+        # necessarily broad except here, to exit the app
+        except Exception:  # pylint: disable=broad-except
             exit(1)
         return result
 
     async def run(self, changed_paths: Sequence[Path]) -> None:
         """Run the checks."""
-        logger.info("running the static checkers...")
-
         paths = await self._get_paths()
         path_strings = tuple(str(p) for p in paths)
         for the_path in changed_paths:
@@ -149,7 +143,6 @@ class Checker:
                 tasks.append(task)
             all_passed = await _run_parallel_checks(tasks)
         except concurrent.futures.CancelledError:
-            logger.info("checking cancelled - cancelling running checks")
             await _cancel_checks(tasks)
             raise
 

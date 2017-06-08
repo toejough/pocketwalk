@@ -38,7 +38,8 @@ async def get_arg(arg: str) -> Any:
     parser = get_parser()
     try:
         args = await a_sync.run(parser.parse_args)
-    except Exception as e:
+    # necessarily broad except to exit
+    except Exception as error:  # pylint: disable=broad-except
         # mypy says this is incompatible - it is not.
-        parser.error(e)  # type: ignore
+        parser.error(error)  # type: ignore
     return getattr(args, arg)

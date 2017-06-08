@@ -24,16 +24,16 @@ T = blessed.Terminal()
 async def _get_mtimes(paths: Sequence[Path]) -> Dict[Path, float]:
     """Return the mtimes for the paths."""
     mtimes = {}
-    for p in paths:
+    for this_path in paths:
         try:
-            stats = await a_sync.run(p.stat)
-            mtimes[p] = stats.st_mtime
+            stats = await a_sync.run(this_path.stat)
+            mtimes[this_path] = stats.st_mtime
         except FileNotFoundError:
             # Try again?
             # fail out if not found a second time.
             await asyncio.sleep(0.1)
-            stats = await a_sync.run(p.stat)
-            mtimes[p] = stats.st_mtime
+            stats = await a_sync.run(this_path.stat)
+            mtimes[this_path] = stats.st_mtime
     return mtimes
 
 
@@ -72,7 +72,8 @@ class Watcher:
             await a_sync.run(self._unsafe_on_modification, changed_paths)
         except concurrent.futures.CancelledError:
             raise
-        except Exception:
+        # necessarily broad except to fail
+        except Exception:  # pylint: disable=broad-except
             exit(1)
 
     async def watch(self) -> None:
