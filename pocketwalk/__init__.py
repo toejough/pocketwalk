@@ -6,8 +6,7 @@
 # [ -Python ]
 import asyncio
 import concurrent.futures
-# mypy drops some error about where glob is defined?
-import glob  # type: ignore
+import glob
 import itertools
 import signal
 from pathlib import Path
@@ -36,8 +35,7 @@ async def _get_check_paths() -> Sequence[Path]:
     path_strings = await config.get_config('paths')
     unglobbed_path_strings = []
     for this_path_string in path_strings:
-        # mypy says no 'recursive' arg for glob.
-        unglobbed_path_list = glob.glob(this_path_string, recursive=True)  # type: ignore
+        unglobbed_path_list = glob.glob(this_path_string, recursive=True)
         unglobbed_path_strings.append(unglobbed_path_list)
     flattened_path_strings = itertools.chain(*unglobbed_path_strings)
     paths = [Path(p) for p in flattened_path_strings]
@@ -52,7 +50,7 @@ async def _get_commands() -> Sequence[Command]:
 async def _check(checker: Checker) -> None:
     """Check the files."""
     if await cli.get_arg('once'):
-        await checker.run(_get_watch_paths())
+        await checker.run(await _get_watch_paths())
     else:
         await Watcher(
             get_paths=_get_watch_paths,

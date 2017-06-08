@@ -11,7 +11,7 @@ import concurrent.futures
 import logging
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Awaitable, Callable, Iterable, List, Sequence
+from typing import Awaitable, Callable, cast, Iterable, List, Sequence
 # [ -Third Party ]
 import a_sync
 # [ -Project ]
@@ -32,8 +32,9 @@ def report_result(command: str, result: SimpleNamespace) -> None:
     print(result.output)
 
 
-def _substitute(args, all_path_strings, changed_path_strings):
+def _substitute(args: Sequence[str], all_path_strings: Sequence[str], changed_path_strings: Sequence[str]) -> Sequence[str]:
     """Substitute arguments."""
+    args = list(args)
     all_symbol = '{all}'
     changed_symbol = '{changed}'
     substitution_occurred = False
@@ -81,13 +82,12 @@ async def _cancel_checks(pending: Iterable[asyncio.Future]) -> None:
     """Cancel the given checks."""
     if pending and not all(p.done() for p in pending):
         print("Cancelling running checks...")
-        # mypy says there is no gather
-        gathered = asyncio.gather(*pending)  # type: ignore
+        gathered = asyncio.gather(*pending)
         gathered.cancel()
         await asyncio.wait_for(gathered, timeout=None)
 
 
-async def _run_parallel_checks(tasks: List[asyncio.Task]) -> bool:
+async def _run_parallel_checks(tasks: List[asyncio.Future]) -> bool:
     """Run the checks in parallel."""
     all_done = False
     while not all_done:
@@ -118,7 +118,7 @@ class Checker:
     async def _on_success(self, paths: Sequence[Path]) -> bool:
         """Run the passed in 'on_success' function safely."""
         try:
-            result = await a_sync.run(self._unsafe_on_success, paths)
+            result = cast(bool, await a_sync.run(self._unsafe_on_success, paths))
         except concurrent.futures.CancelledError:
             logger.info("success task cancelled - new changes detected.")
             raise
@@ -127,7 +127,7 @@ class Checker:
             exit(1)
         return result
 
-    async def run(self, changed_paths) -> None:
+    async def run(self, changed_paths: Sequence[Path]) -> None:
         """Run the checks."""
         logger.info("running the static checkers...")
 
@@ -145,8 +145,7 @@ class Checker:
         tasks = []
         try:
             for command in commands:
-                # mypy says asyncio doesn't have ensure_future
-                task = asyncio.ensure_future(_run_single(command, path_strings, self._changed_path_strings))  # type: ignore
+                task = asyncio.ensure_future(_run_single(command, path_strings, self._changed_path_strings))
                 tasks.append(task)
             all_passed = await _run_parallel_checks(tasks)
         except concurrent.futures.CancelledError:

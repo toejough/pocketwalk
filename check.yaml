@@ -7,4 +7,4 @@ checks:
     - [pylint, '{changed}']
     - [flake8]
     - [dodgy]
-    - [mypy, --strict]
+    - [mypy, --strict, --ignore-missing-imports]

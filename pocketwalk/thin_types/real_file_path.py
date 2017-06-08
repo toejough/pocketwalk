@@ -16,7 +16,7 @@ assert Any
 # [ API ]
 def real_file_path(path_string: str) -> Path:
     """Build an absolute, concrete, existing path to a file."""
-    path = Path(path_string)  # type: Any
+    path = Path(path_string)
     if not path.is_absolute():
         path = Path.cwd() / path_string
     if not path.is_file():

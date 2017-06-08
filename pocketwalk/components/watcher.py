@@ -92,11 +92,10 @@ class Watcher:
                     if running_checks:
                         if running_checks.cancel():
                             print("Cancelled running checks due to mid-check changes.")
-                    # mypy says ensure_future is not a thing
-                    running_checks = asyncio.ensure_future(self._on_modification(changed_paths))  # type: ignore
+                    running_checks = asyncio.ensure_future(self._on_modification(changed_paths))
                     last_mtimes = new_mtimes
                 else:
-                    silently = running_checks and not running_checks.done()
+                    silently = bool(running_checks and not running_checks.done())
                     await _wait(silently=silently)
                     # await a_sync.run(_wait, silently=silently)
         except concurrent.futures.CancelledError:

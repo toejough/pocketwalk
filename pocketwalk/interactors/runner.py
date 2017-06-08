@@ -10,7 +10,7 @@ import asyncio
 import concurrent.futures
 import subprocess
 from types import SimpleNamespace
-from typing import Sequence
+from typing import cast, IO, Sequence
 
 
 # [ Helpers ]
@@ -27,15 +27,16 @@ async def run(command: str, args: Sequence[str]) -> SimpleNamespace:
         try:
             await asyncio.wait_for(process.wait(), timeout=3)
         # mypy says no such error
-        except asyncio.TimeoutError:  # type: ignore
+        except asyncio.TimeoutError:
             process.kill()
             try:
                 await asyncio.wait_for(process.wait(), timeout=3)
             # mypy says no such error
-            except asyncio.TimeoutError:  # type: ignore
+            except asyncio.TimeoutError:
                 raise RuntimeError("subprocess for {command} did not stop after terminate and kill commands.".format(**locals()))
         raise
+    stdout = cast(IO, process.stdout)
     return SimpleNamespace(
         success=process.returncode == 0,
-        output=str(await process.stdout.read(), 'utf-8'),
+        output=str(await stdout.read(), 'utf-8'),
     )

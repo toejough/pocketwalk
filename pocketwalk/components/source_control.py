@@ -12,7 +12,7 @@ import select
 import sys
 import termios
 from pathlib import Path
-from typing import Sequence
+from typing import cast, List, Sequence
 # [ -Project ]
 from ..interactors.runner import run
 
@@ -20,7 +20,7 @@ from ..interactors.runner import run
 # [ Helpers ]
 async def _get_status() -> Sequence[str]:
     """Get repo status."""
-    return (await run('git', ['status', '--porcelain'])).output.splitlines()
+    return cast(str, (await run('git', ['status', '--porcelain'])).output).splitlines()
 
 
 async def _add_missing_paths(paths: Sequence[Path], status_lines: Sequence[str]) -> None:
@@ -72,4 +72,8 @@ async def commit(paths: Sequence[Path]) -> bool:
         message = await async_input('> ')
     except concurrent.futures.CancelledError:
         raise
-    return (await run('git', ['commit', '-am', message])).success
+    return cast(bool, (await run('git', ['commit', '-am', message])).success)
+
+
+# [ Flake8 Appeasement ]
+assert List
