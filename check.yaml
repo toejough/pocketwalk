@@ -7,3 +7,4 @@ checks:
     - [flake8]
     - [dodgy]
     - [mypy, --strict, --ignore-missing-imports]
+    - [python, -c, 'import pocketwalk.test_pocketwalk as p; p.test_loop()']

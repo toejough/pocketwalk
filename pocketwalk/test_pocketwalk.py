@@ -8,12 +8,11 @@
 # [ -Python ]
 import sys
 # [ -Third Party ]
-import utaw
 from runaway.extras import do_while
 from runaway.signals import (
     Call,
 )
-from runaway.testing import TestWrapper
+from runaway.testing import assertEqual, TestWrapper
 # [ -Project ]
 from . import loop, run_single
 from .core import _loop_predicate, types_
@@ -29,12 +28,12 @@ class Loop:
 
     def loops_single_and_gets_exit_status(self, exit_status: types_.GoodExit) -> None:
         """Verify the loop call and return."""
-        utaw.assertEqual(
+        assertEqual(
             self._coro.signal,
             Call(
                 do_while,
-                run_single,
                 _loop_predicate,
+                run_single,
                 None,
             ),
         )
@@ -42,7 +41,7 @@ class Loop:
 
     def exits_and_gets_system_exit(self, exit_code: int) -> None:
         """Verify the exit call and return."""
-        utaw.assertEqual(self._coro.signal, Call(sys.exit, exit_code))
+        assertEqual(self._coro.signal, Call(sys.exit, exit_code))
         self._coro.receives_error(SystemExit, SystemExit(exit_code), None)
 
 
