@@ -8,6 +8,7 @@
 # [ -Python ]
 import sys
 # [ -Third Party ]
+from dado import data_driven
 from runaway.extras import do_while
 from runaway.signals import (
     Call,
@@ -46,10 +47,12 @@ class Loop:
 
 
 # [ Loop Tests ]
-def test_loop() -> None:
+@data_driven(['status', 'code'], {
+    'good': [types_.GoodExit(), 0],
+    'bad': [types_.BadExit(), 1],
+})
+def test_loop(status: types_.GoodExit, code: int) -> None:
     """Test the main loop."""
     the_loop = Loop()
-    exit_status = types_.GoodExit()
-    system_exit_code = 0
-    the_loop.loops_single_and_gets_exit_status(exit_status)
-    the_loop.exits_and_gets_system_exit(system_exit_code)
+    the_loop.loops_single_and_gets_exit_status(status)
+    the_loop.exits_and_gets_system_exit(code)

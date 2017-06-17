@@ -36,4 +36,4 @@ select =
     B9
 
 # set import order rules
-import-order-style = edited
+import-order-style = pep8

@@ -56,7 +56,9 @@ disable=print-statement,parameter-unpacking,unpacking-in-except,old-raise-syntax
     # using flake8-bugbear to catch this more gracefully
     line-too-long,
     # this is ridiculous.  It's totally fine to use a class as a data structure, with 0 public methods.
-    too-few-public-methods
+    too-few-public-methods,
+    # keeps prompting for spaces around kwarg assignment, but only sometimes?  Seems buggy.
+    bad-whitespace
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

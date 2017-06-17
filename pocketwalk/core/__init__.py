@@ -13,13 +13,16 @@ from runaway.extras import do_while
 from runaway.signals import (
     call,
 )
+# [ -Project ]
+from pocketwalk.core import types_
 
 
 # [ API ]
 async def loop() -> None:
     """Loop over the pocketwalk actions."""
-    await call(do_while, _loop_predicate, run_single, None)
-    await call(sys.exit, 0)
+    status = await call(do_while, _loop_predicate, run_single, None)
+    code = 0 if isinstance(status, types_.GoodExit) else 1
+    await call(sys.exit, code)
 
 
 async def run_single() -> None:
