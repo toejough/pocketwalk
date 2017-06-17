@@ -3,17 +3,15 @@
 max-line-length = 120
 
 # ignore specific rules
-ignore = 
+ignore =
     # ignore strict line length rule
     E501,
     # forget inline quotes, because apostrophes are a thing in user strings, but
     # I want single quotes in non-user strings (like dictionary keys)
     Q000,
-    # pocketwalk is not 3.6-only yet
-    C816
 
 # actively select specific rules/sets
-select = 
+select =
     # bugbear checks
     B,
     # complexity checks

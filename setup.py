@@ -1,3 +1,6 @@
+# coding: utf-8
+
+
 """Setup for pocketwalk."""
 
 
@@ -9,7 +12,7 @@ from setuptools import setup, find_packages
 # [ Main ]
 setup(
     name='pocketwalk',
-    version='0.1.0',
+    version='0.2.0',
     description='Pocketwalk: Watch/Run/Commit.',
     url='https://github.com/toejough/pocketwalk',
     author='toejough',
@@ -30,11 +33,11 @@ setup(
             # Specify the Python versions you support here. In particular, ensure
             # that you indicate whether you support Python 2, Python 3 or both.
             'Programming Language :: Python :: 3',
-            'Programming Language :: Python :: 3.5',
+            'Programming Language :: Python :: 3.6',
     ],
     keywords="watch run commit",
     packages=find_packages(),
-    install_requires=['a-sync', 'blessed', 'pyaml'],
+    install_requires=['runaway', 'pytoml'],
     extras_require={
         'checkers': [
             'pylint', 'flake8', 'dodgy', 'vulture',
@@ -49,7 +52,14 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'pocketwalk=pocketwalk:main',
+            'pocketwalk=pocketwalk.core:main',
         ],
-    }
+        'pocketwalk': [
+            'config = pocketwalk.plugins.config:get_config',
+            'context_manager = pocketwalk.plugins.context_manager:get_context_manager',
+            'runner = pocketwalk.plugins.tool_runner:get_tool_runner',
+            'vcs = pocketwalk.plugins.vcs:get_vcs',
+            'cancellation = pocketwalk.plugins.cancellation:get_cancellation',
+        ],
+    },
 )

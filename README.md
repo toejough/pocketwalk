@@ -1,4 +1,5 @@
 # pocketwalk
+
 Watch, run, commit.
 
 # What it does (short version)
@@ -11,105 +12,60 @@ The commit tool at the moment is git-only.  If there's enough demand, it can be 
 
 # What it does (long version)
 
-* reads the CLI args for a config path and how to run
-  * config path defaults to `./check.yaml`
-  * how to run defaults to continuous - you can override and tell it to run once
-* reads the config file for files to watch (will always also watch the config file for changes!)
-* reads the config file for checks to run (will always pass all specified file paths to checker as CLI args (but not the config file))
-* runs checks on all files once
-* unless overridden on the CLI, watches the specified files (and the config) and on any change:
-  * cancels any running check or commit
-  * re-reads the config file
-  * re-runs the checks (in parallel!)
+* reads the config and CLI for how to run
+    * config path defaults to `./.pocketwalk.toml`
+    * the CLI takes precedence over the config
+* runs the given tools with the given paths
+* each tool is run to completion
+* if all tools pass, you are shown the changes since the last commit, and prompted to commit them (unless you've disabled vcs)
+* if any tool fails, pocketwalk waits for you to fix it (unless you're just running once)
+* after commit, the tool continues to watch your files & repeats (unless you're running just till passing)
 
-On any check failure, any other still-running checks are cancelled.
+Changes to files will stop and restart affected tools mid run, including the VCS commit action.
 
-On all checks pass, the repo diff is displayed, and you are prompted for a commit message.
-* if you enter a message, the diffs are committed and you are dropped back to a waiting message while the tool waits for more changes.
-* else, the prompt sits there waiting, but the files are still being scanned in the meantime.  Any changes made while the prompt is up will cancel the commit and restart the checks.
+# Example use
 
-## Fun features
-### Config file reload
-As mentioned several times, the config file is re-loaded on every modification.  This means:
-* changes to the file list actually change the checked files - no need to restart the watcher
-* changes to the checker list actually change the checks run - no need to restart the watcher
+`.pocketwalk.toml`:
 
-### Git auto-add
-Any new files added to the config to check, which are not checked into git, will be added to git when a commit is made.
+    ```toml
+    run = "forever"
 
-### Fast-fail
-This has already been mentioned elsewhere, but the tool fails fast.  The checks are run in parallel, and the first check to fail cancels any still-running checks.  The workflow is change-check-fix-repeat.  The tool is opinionated in that it expects that you want to fix any and all failures ASAP, so it stops and reports to you as soon as a failure is discovered.
+    [tools.pylint]
+    config = "{affected_targets}"
+    target_paths = "**/*.py"
+    trigger_paths = ".pylintrc"
+    preconditions = []
 
-### Always-fresh results
-The tool continues to watch the files for changes, even while running checkers or waiting for your commit message.  Any time a change is detected, running checks or commits are aborted and the checks are run again.  This ensures that you're always only seeing the failures in the current code on disk, and (perhaps more importantly), only committing code that has actually passed all of your checks.
+    [tools.vulture]
+    config = "."
+    trigger_paths = "**/*.py"
 
-### Git diff
-Successful checks result in a git diff of the current code against the last commit being shown.
+    [tools.dodgy]
+    trigger_paths = "**/*.py"
 
-### Git commit
-Successful checks result in a prompt for a commit message, which is used to commit your changes.  Commits are only made if you provide a message - if you don't want to commit a small change, don't.  The tool continues to watch for changes and will cancel the commit and restart the checking/commit process whenever a new modification is discovered.
+    [tools.flake8]
+    config = "{affected_targets}"
+    target_paths = "**/*.py"
+    trigger_paths = ".flake8"
 
-### Globbing
-Files to watch/check can now be specified in the config file with globs:
-* `*.py` for all python files in a directory
-* `**/*.py` for all python files in all subdirectories
+    [tools.pytest]
+    config = "{affected_targets}"
+    target_paths = "**/test*.py"
+    trigger_paths = "**/*.py"
+    preconditions = ['pylint', 'vulture', 'flake8', 'dodgy']
+    ```
 
-### Arg Customization
-* Checkers are configured like `[command, arg1, arg2, arg3, ...]`.
-* Args are optional - you may simply use `[command]`.
-* Args may include the special symbols `{all}` or `{changed}`
-  * `{all}` will be replaced, as often as it is found, with all of the watched paths
-  * `{changed}` will be replaced, as often as it is found, with the paths changed since the last commit.
-* if no special symbols are found, all of the watched paths are passed at the end of the arg list
+At your shell, run:
 
-For example:
+    `pocketwalk`
 
-`[command]` and `[command, '{all}']` will both run the command with all of the paths.
-
-`[command, '{changed}']` will only run the command against the changed paths.
-
-
-# Installation
-clone the repo: `git clone https://github.com/toejough/pocketwalk.git`
-
-switch to the `alpha` branch: `git checkout alpha`
-
-install [python 3.5.2](https://www.python.org/downloads/release/python-352/) or higher if you don't have it yet.  As of this writing, brew doesn't install 3.5.2, just 3.5.1, and the checker uses some types that were only defined in 3.5.2.  `¯\_(ツ)_/¯`
-
-pip install all the third-party libs:
-
-* `a_sync` - python async helpers
-* `blessed` - python terminal-fu
-* `pyaml` - python YAML lib
-
-Add the installation dir to your path:
-`export PATH=$PATH:<path-to-pocketwalk-repo>`
-
-# Running
-`pocketwalk`
-
-That'll error out telling you you need a config file.
-
-example config file:
-```yaml
-paths:
-    - alexa/__init__.py
-
-checks:
-    - [vulture]
-    - [prospector, '{changed}']
-    - [mypy, -s, --fast-parser, --disallow-untyped-defs]
-```
-
-Add a config file (named `check.yaml` by default, you can name it anything and pass it as a cli arg).
-
-Run again: `pocketwalk`.
+This will run pylint, vulture, dodgy, and flake8 tools.  They will run in parallel, and output their results, *then* run pytest, *then* prompt you for a commit if you have uncommited file changes.
 
 If running in the default continuous mode, you stop it with `ctrl-c`.
 
-# Caveats
-* there's no pip module for this yet.  Follow the installation instructions in the "install" section above.
-* there's a problem with mypy's definition of the python `glob` module, so there's a custom `glob.pyi` included in `type_hints` - use it with `MYPYPATH=pocketwalk/type_hints pocketwalk` if you are checking the `pocketwalk` code with mypy.
+# Installation
+
+`pip install pocketwalk`
 
 # Naming
 "(watch|check)[er|it]" and other variations have been taken, so I thought I'd make a play on the words "Watch" (pocketwatch) and "Run" (walk).

@@ -56,7 +56,11 @@ disable=print-statement,parameter-unpacking,unpacking-in-except,old-raise-syntax
     # using flake8-bugbear to catch this more gracefully
     line-too-long,
     # this is ridiculous.  It's totally fine to use a class as a data structure, with 0 public methods.
-    too-few-public-methods
+    too-few-public-methods,
+    # keeps prompting for spaces around kwarg assignment, but only sometimes?  Seems buggy.
+    bad-whitespace,
+    # sometimes fixme's are a more convenient form of issue tracking for pre 1.0.  by 1.0 this line should be removed
+    fixme
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
@@ -136,16 +140,16 @@ const-rgx=(([A-Z_][A-Z0-9_]*)|(__.*__))$
 docstring-min-length=-1
 
 # Naming hint for function names
-function-name-hint=(([a-z][a-z0-9_]{2,30})|(_[a-z0-9_]*))$
+function-name-hint=(([a-z][a-z0-9_]{2,60})|(_[a-z0-9_]*))$
 
 # Regular expression matching correct function names
-function-rgx=(([a-z][a-z0-9_]{2,30})|(_[a-z0-9_]*))$
+function-rgx=(([a-z][a-z0-9_]{2,60})|(_[a-z0-9_]*))$
 
 # Good variable names which should always be accepted, separated by a comma
 good-names=i,j,k,ex,Run,_
 
 # Include a hint for the correct naming format with invalid-name
-include-naming-hint=no
+include-naming-hint=yes
 
 # Naming hint for inline iteration names
 inlinevar-name-hint=[A-Za-z_][A-Za-z0-9_]*$
@@ -154,10 +158,10 @@ inlinevar-name-hint=[A-Za-z_][A-Za-z0-9_]*$
 inlinevar-rgx=[A-Za-z_][A-Za-z0-9_]*$
 
 # Naming hint for method names
-method-name-hint=(([a-z][a-z0-9_]{2,30})|(_[a-z0-9_]*))$
+method-name-hint=(([a-z][a-z0-9_]{2,60})|(_[a-z0-9_]*))$
 
 # Regular expression matching correct method names
-method-rgx=(([a-z][a-z0-9_]{2,30})|(_[a-z0-9_]*))$
+method-rgx=(([a-z][a-z0-9_]{2,60})|(_[a-z0-9_]*))$
 
 # Naming hint for module names
 module-name-hint=(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$
