@@ -15,8 +15,8 @@ from runaway.signals import (
 )
 from runaway.testing import assertEqual, TestWrapper
 # [ -Project ]
-from . import loop, run_single
-from .core import _loop_predicate, types_
+from pocketwalk import loop, run_single
+from pocketwalk.core import _loop_predicate, types_
 
 
 # [ Loop ]
