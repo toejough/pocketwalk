@@ -6,7 +6,7 @@
 
 # [ Imports ]
 # [ -Python ]
-import sys
+from types import SimpleNamespace
 # [ -Third Party ]
 from dado import data_driven
 from runaway.extras import do_while
@@ -26,6 +26,7 @@ class Loop:
     def __init__(self) -> None:
         """Init state."""
         self._coro = TestWrapper(loop())
+        self._state = SimpleNamespace()
 
     def loops_single_and_gets_exit_status(self, exit_status: types_.GoodExit) -> None:
         """Verify the loop call and return."""
@@ -39,20 +40,20 @@ class Loop:
             ),
         )
         self._coro.receives_value(exit_status)
+        self._state.status = exit_status
 
-    def exits_and_gets_system_exit(self, exit_code: int) -> None:
+    def returns_exit_status(self) -> None:
         """Verify the exit call and return."""
-        assertEqual(self._coro.signal, Call(sys.exit, exit_code))
-        self._coro.receives_error(SystemExit, SystemExit(exit_code), None)
+        assertEqual(self._coro.returned, self._state.status)
 
 
 # [ Loop Tests ]
-@data_driven(['status', 'code'], {
-    'good': [types_.GoodExit(), 0],
-    'bad': [types_.BadExit(), 1],
+@data_driven(['status'], {
+    'good': [types_.GoodExit()],
+    'bad': [types_.BadExit()],
 })
-def test_loop(status: types_.GoodExit, code: int) -> None:
+def test_loop(status: types_.GoodExit) -> None:
     """Test the main loop."""
     the_loop = Loop()
     the_loop.loops_single_and_gets_exit_status(status)
-    the_loop.exits_and_gets_system_exit(code)
+    the_loop.returns_exit_status()

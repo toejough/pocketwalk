@@ -6,7 +6,6 @@
 
 # [ Imports ]
 # [ -Python ]
-import sys
 import typing
 # [ -Third Party ]
 from runaway.extras import do_while
@@ -18,11 +17,10 @@ from pocketwalk.core import types_
 
 
 # [ API ]
-async def loop() -> None:
+async def loop() -> types_.GoodExit:
     """Loop over the pocketwalk actions."""
-    status = await call(do_while, _loop_predicate, run_single, None)
-    code = 0 if isinstance(status, types_.GoodExit) else 1
-    await call(sys.exit, code)
+    # mypy says this returns any...technically true?
+    return await call(do_while, _loop_predicate, run_single, None)  # type: ignore
 
 
 async def run_single() -> None:
