@@ -2,7 +2,6 @@ paths:
     - pocketwalk/**/*.py
 
 checks:
-    - [vulture]
     - [symilar, --ignore-imports]
     - [pylint, '{changed}']
     - [flake8]
