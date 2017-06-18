@@ -14,3 +14,4 @@ class Result(enum.Enum):
 
     PASS = enum.auto()
     FAIL = enum.auto()
+    CANCELLED = enum.auto()

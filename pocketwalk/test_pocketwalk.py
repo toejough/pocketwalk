@@ -9,10 +9,10 @@
 import types
 # [ -Third Party ]
 from dado import data_driven
-from runaway import extras, signals, testing
+from runaway import extras, handlers, signals, testing
 # [ -Project ]
 import pocketwalk
-from pocketwalk.core import core
+from pocketwalk.core import checkers, core, source_control
 
 
 # [ Static Checking ]
@@ -21,7 +21,7 @@ from pocketwalk.core import core
 # pylint: disable=protected-access
 
 
-# [ Loop ]
+# [ Test Objects ]
 class Loop:
     """Loop test steps."""
 
@@ -49,6 +49,47 @@ class Loop:
         testing.assertEqual(self._coro.returned, self._state.status)
 
 
+class SinglePass:
+    """Single Pass test steps."""
+
+    def __init__(self) -> None:
+        """Init state."""
+        self._coro = testing.TestWrapper(pocketwalk.run_single())
+        self._state = types.SimpleNamespace()
+
+    def runs_checkers_and_receives_success(self) -> None:
+        """Verify coro runs the checkers and receives success."""
+        testing.assertEqual(self._coro.signal, signals.Call(checkers.run))
+        self._coro.receives_value(checkers.Result.PASS)
+
+    def launches_checker_watchers(self) -> None:
+        """Verify coro launches the checkers' path watchers."""
+        testing.assertEqual(self._coro.signal, signals.Future(checkers.watch))
+        the_future = handlers.Future(checkers.watch)
+        self._coro.receives_value(the_future)
+
+    def launches_commit(self) -> None:
+        """Verify coro launches the commit process."""
+        testing.assertEqual(self._coro.signal, signals.Future(source_control.commit))
+        the_future = handlers.Future(source_control.commit)
+        self._coro.receives_value(the_future)
+
+    def waits_for_commit_or_watchers_and_gets_commit_success(self) -> None:
+        """Verify coro waits for either the commit or watchers, and the commit returns success."""
+        testing.assertEqual(self._coro.signal, signals.WaitFor(
+            self._state.watchers_future, self._state.commit_future,
+            minimum_done=1, cancel_remaining=False, timeout=None,
+        ))
+        self._state.commit_future.result = source_control.Result.PASS
+        result = handlers.WaitResult([self._state.commit_future], [self._state.watchers_future])
+        self._coro.receives_value(result)
+
+    def stops_watchers_and_gets_cancelled(self) -> None:
+        """Verify coro stops watchers and gets cancelled."""
+        testing.assertEqual(self._coro.signal, signals.Cancel(self._state.watchers_future))
+        self._coro.receives_value(checkers.Result.CANCELLED)
+
+
 # [ Loop Tests ]
 @data_driven(['status'], {
     'good': [pocketwalk.Result.PASS],
@@ -59,3 +100,14 @@ def test_loop(status: pocketwalk.Result) -> None:
     the_loop = Loop()
     the_loop.loops_single_and_gets_exit_status(status)
     the_loop.returns_exit_status()
+
+
+# [ Single Tests ]
+def test_single_happy_path() -> None:
+    """Test a single pass happy path."""
+    single_pass = SinglePass()
+    single_pass.runs_checkers_and_receives_success()
+    single_pass.launches_checker_watchers()
+    single_pass.launches_commit()
+    single_pass.waits_for_commit_or_watchers_and_gets_commit_success()
+    single_pass.stops_watchers_and_gets_cancelled()
