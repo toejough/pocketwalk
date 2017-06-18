@@ -8,10 +8,7 @@
 # [ -Python ]
 import typing
 # [ -Third Party ]
-from runaway.extras import do_while
-from runaway.signals import (
-    call,
-)
+from runaway import extras, signals
 # [ -Project ]
 from pocketwalk.core import types_
 
@@ -20,7 +17,7 @@ from pocketwalk.core import types_
 async def loop() -> types_.GoodExit:
     """Loop over the pocketwalk actions."""
     # mypy says this returns any...technically true?
-    return await call(do_while, _loop_predicate, run_single, None)  # type: ignore
+    return await signals.call(extras.do_while, _loop_predicate, run_single, None)  # type: ignore
 
 
 async def run_single() -> None:
