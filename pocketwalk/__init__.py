@@ -4,5 +4,6 @@
 """Pocketwalk API."""
 
 
-from pocketwalk.core import loop, run_single
-from pocketwalk.core.types_ import GoodExit, BadExit
+# [ Imports ]
+from .core import loop, run_single
+from .core.types_ import GoodExit, BadExit

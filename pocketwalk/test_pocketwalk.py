@@ -14,7 +14,7 @@ from runaway import signals
 from runaway.testing import assertEqual, TestWrapper
 # [ -Project ]
 import pocketwalk
-from pocketwalk import core
+from pocketwalk.core import core
 
 
 # [ Static Checking ]
