@@ -10,9 +10,7 @@ import types
 # [ -Third Party ]
 from dado import data_driven
 from runaway import extras
-from runaway.signals import (
-    Call,
-)
+from runaway import signals
 from runaway.testing import assertEqual, TestWrapper
 # [ -Project ]
 from pocketwalk import loop, run_single
@@ -32,7 +30,7 @@ class Loop:
         """Verify the loop call and return."""
         assertEqual(
             self._coro.signal,
-            Call(
+            signals.Call(
                 extras.do_while,
                 _loop_predicate,
                 run_single,
