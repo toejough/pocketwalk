@@ -66,12 +66,14 @@ class SinglePass:
         """Verify coro launches the checkers' path watchers."""
         testing.assertEqual(self._coro.signal, signals.Future(checkers.watch))
         the_future = handlers.Future(checkers.watch)
+        self._state.watchers_future = the_future
         self._coro.receives_value(the_future)
 
     def launches_commit(self) -> None:
         """Verify coro launches the commit process."""
         testing.assertEqual(self._coro.signal, signals.Future(source_control.commit))
         the_future = handlers.Future(source_control.commit)
+        self._state.commit_future = the_future
         self._coro.receives_value(the_future)
 
     def waits_for_commit_or_watchers_and_gets_commit_success(self) -> None:
@@ -81,7 +83,7 @@ class SinglePass:
             minimum_done=1, cancel_remaining=False, timeout=None,
         ))
         self._state.commit_future.result = source_control.Result.PASS
-        result = handlers.WaitResult([self._state.commit_future], [self._state.watchers_future])
+        result = handlers.WaitResult([self._state.commit_future], [self._state.watchers_future], timed_out=[])
         self._coro.receives_value(result)
 
     def stops_watchers_and_gets_cancelled(self) -> None:

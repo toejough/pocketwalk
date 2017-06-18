@@ -10,7 +10,7 @@ import typing
 # [ -Third Party ]
 from runaway import extras, signals
 # [ -Project ]
-from pocketwalk.core import types_
+from pocketwalk.core import checkers, source_control, types_
 
 
 # [ API ]
@@ -22,7 +22,11 @@ async def loop() -> types_.Result:
 
 async def run_single() -> None:
     """Run through the pocketwalk actions once."""
-    raise NotImplementedError
+    await signals.call(checkers.run)
+    watch_future = await signals.future(checkers.watch)
+    commit_future = await signals.future(source_control.commit)
+    await signals.wait_for(commit_future, watch_future, minimum_done=1, cancel_remaining=False)
+    await signals.cancel(watch_future)
 
 
 # [ Internals ]
