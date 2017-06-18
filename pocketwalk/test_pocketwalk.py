@@ -32,7 +32,7 @@ class Loop:
         self._coro = TestWrapper(pocketwalk.loop())
         self._state = types.SimpleNamespace()
 
-    def loops_single_and_gets_exit_status(self, exit_status: pocketwalk.GoodExit) -> None:
+    def loops_single_and_gets_exit_status(self, exit_status: pocketwalk.Result) -> None:
         """Verify the loop call and return."""
         assertEqual(
             self._coro.signal,
@@ -53,10 +53,10 @@ class Loop:
 
 # [ Loop Tests ]
 @data_driven(['status'], {
-    'good': [pocketwalk.GoodExit()],
-    'bad': [pocketwalk.BadExit()],
+    'good': [pocketwalk.Result.PASS],
+    'bad': [pocketwalk.Result.FAIL],
 })
-def test_loop(status: pocketwalk.GoodExit) -> None:
+def test_loop(status: pocketwalk.Result) -> None:
     """Test the main loop."""
     the_loop = Loop()
     the_loop.loops_single_and_gets_exit_status(status)

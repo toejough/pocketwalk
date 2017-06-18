@@ -14,7 +14,7 @@ from pocketwalk.core import types_
 
 
 # [ API ]
-async def loop() -> types_.GoodExit:
+async def loop() -> types_.Result:
     """Loop over the pocketwalk actions."""
     # mypy says this returns any...technically true?
     return await signals.call(extras.do_while, _loop_predicate, run_single, None)  # type: ignore

@@ -4,14 +4,13 @@
 """Pocketwalk internal types."""
 
 
+# [ Imports ]
+import enum
+
+
 # [ API ]
-class GoodExit:
-    """A class representing a good exit from the app."""
+class Result(enum.Enum):
+    """Result enums."""
 
-    pass
-
-
-class BadExit:
-    """A class representing a bad exit from the app."""
-
-    pass
+    PASS = enum.auto()
+    FAIL = enum.auto()
