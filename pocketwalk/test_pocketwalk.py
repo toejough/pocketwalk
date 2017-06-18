@@ -9,7 +9,7 @@
 import types
 # [ -Third Party ]
 from dado import data_driven
-from runaway.extras import do_while
+from runaway import extras
 from runaway.signals import (
     Call,
 )
@@ -33,7 +33,7 @@ class Loop:
         assertEqual(
             self._coro.signal,
             Call(
-                do_while,
+                extras.do_while,
                 _loop_predicate,
                 run_single,
                 None,
