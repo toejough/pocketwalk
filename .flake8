@@ -10,6 +10,10 @@ ignore =
     # I want single quotes in non-user strings (like dictionary keys)
     Q000,
 
+# ignore init files
+exclude = __init__.py
+
+
 # actively select specific rules/sets
 select = 
     # bugbear checks

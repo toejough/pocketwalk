@@ -14,7 +14,13 @@ from runaway import signals
 from runaway.testing import assertEqual, TestWrapper
 # [ -Project ]
 import pocketwalk
-from pocketwalk.core import _loop_predicate, types_
+from pocketwalk import core
+
+
+# [ Static Checking ]
+# disable protected access checks - this is a test file, and we're going to
+# verify use of protected attributes.
+# pylint: disable=protected-access
 
 
 # [ Loop ]
@@ -26,13 +32,13 @@ class Loop:
         self._coro = TestWrapper(pocketwalk.loop())
         self._state = types.SimpleNamespace()
 
-    def loops_single_and_gets_exit_status(self, exit_status: types_.GoodExit) -> None:
+    def loops_single_and_gets_exit_status(self, exit_status: pocketwalk.GoodExit) -> None:
         """Verify the loop call and return."""
         assertEqual(
             self._coro.signal,
             signals.Call(
                 extras.do_while,
-                _loop_predicate,
+                core._loop_predicate,
                 pocketwalk.run_single,
                 None,
             ),
@@ -47,10 +53,10 @@ class Loop:
 
 # [ Loop Tests ]
 @data_driven(['status'], {
-    'good': [types_.GoodExit()],
-    'bad': [types_.BadExit()],
+    'good': [pocketwalk.GoodExit()],
+    'bad': [pocketwalk.BadExit()],
 })
-def test_loop(status: types_.GoodExit) -> None:
+def test_loop(status: pocketwalk.GoodExit) -> None:
     """Test the main loop."""
     the_loop = Loop()
     the_loop.loops_single_and_gets_exit_status(status)
