@@ -6,7 +6,7 @@
 
 # [ Imports ]
 # [ -Python ]
-from types import SimpleNamespace
+import types
 # [ -Third Party ]
 from dado import data_driven
 from runaway.extras import do_while
@@ -26,7 +26,7 @@ class Loop:
     def __init__(self) -> None:
         """Init state."""
         self._coro = TestWrapper(loop())
-        self._state = SimpleNamespace()
+        self._state = types.SimpleNamespace()
 
     def loops_single_and_gets_exit_status(self, exit_status: types_.GoodExit) -> None:
         """Verify the loop call and return."""
