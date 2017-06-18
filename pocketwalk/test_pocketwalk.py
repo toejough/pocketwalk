@@ -13,7 +13,7 @@ from runaway import extras
 from runaway import signals
 from runaway.testing import assertEqual, TestWrapper
 # [ -Project ]
-from pocketwalk import loop, run_single
+import pocketwalk
 from pocketwalk.core import _loop_predicate, types_
 
 
@@ -23,7 +23,7 @@ class Loop:
 
     def __init__(self) -> None:
         """Init state."""
-        self._coro = TestWrapper(loop())
+        self._coro = TestWrapper(pocketwalk.loop())
         self._state = types.SimpleNamespace()
 
     def loops_single_and_gets_exit_status(self, exit_status: types_.GoodExit) -> None:
@@ -33,7 +33,7 @@ class Loop:
             signals.Call(
                 extras.do_while,
                 _loop_predicate,
-                run_single,
+                pocketwalk.run_single,
                 None,
             ),
         )
