@@ -9,9 +9,7 @@
 import types
 # [ -Third Party ]
 from dado import data_driven
-from runaway import extras
-from runaway import signals
-from runaway.testing import assertEqual, TestWrapper
+from runaway import extras, signals, testing
 # [ -Project ]
 import pocketwalk
 from pocketwalk.core import core
@@ -29,12 +27,12 @@ class Loop:
 
     def __init__(self) -> None:
         """Init state."""
-        self._coro = TestWrapper(pocketwalk.loop())
+        self._coro = testing.TestWrapper(pocketwalk.loop())
         self._state = types.SimpleNamespace()
 
     def loops_single_and_gets_exit_status(self, exit_status: pocketwalk.Result) -> None:
         """Verify the loop call and return."""
-        assertEqual(
+        testing.assertEqual(
             self._coro.signal,
             signals.Call(
                 extras.do_while,
@@ -48,7 +46,7 @@ class Loop:
 
     def returns_exit_status(self) -> None:
         """Verify the exit call and return."""
-        assertEqual(self._coro.returned, self._state.status)
+        testing.assertEqual(self._coro.returned, self._state.status)
 
 
 # [ Loop Tests ]
