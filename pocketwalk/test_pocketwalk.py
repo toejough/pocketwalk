@@ -57,10 +57,15 @@ class SinglePass:
         self._coro = testing.TestWrapper(pocketwalk.run_single())
         self._state = types.SimpleNamespace()
 
-    def runs_checkers_and_receives_success(self) -> None:
-        """Verify coro runs the checkers and receives success."""
+    def runs_checkers_and_gets_success(self) -> None:
+        """Verify coro runs the checkers and gets success."""
         testing.assertEqual(self._coro.signal, signals.Call(checkers.run))
         self._coro.receives_value(checkers.Result.PASS)
+
+    def runs_checkers_and_gets_failure(self) -> None:
+        """Verify coro runs the checkers and gets failure."""
+        testing.assertEqual(self._coro.signal, signals.Call(checkers.run))
+        self._coro.receives_value(checkers.Result.FAIL)
 
     def launches_checker_watchers(self) -> None:
         """Verify coro launches the checkers' path watchers."""
@@ -68,6 +73,11 @@ class SinglePass:
         the_future = handlers.Future(checkers.watch)
         self._state.watchers_future = the_future
         self._coro.receives_value(the_future)
+
+    def runs_checker_watchers_and_gets_success(self) -> None:
+        """Verify coro runs the checker watchers and gets success."""
+        testing.assertEqual(self._coro.signal, signals.Call(checkers.watch))
+        self._coro.receives_value(checkers.Result.PASS)
 
     def launches_commit(self) -> None:
         """Verify coro launches the commit process."""
@@ -108,8 +118,15 @@ def test_loop(status: pocketwalk.Result) -> None:
 def test_single_happy_path() -> None:
     """Test a single pass happy path."""
     single_pass = SinglePass()
-    single_pass.runs_checkers_and_receives_success()
+    single_pass.runs_checkers_and_gets_success()
     single_pass.launches_checker_watchers()
     single_pass.launches_commit()
     single_pass.waits_for_commit_or_watchers_and_gets_commit_success()
     single_pass.stops_watchers_and_gets_cancelled()
+
+
+def test_single_failed_check() -> None:
+    """Test a single pass with failed check."""
+    single_pass = SinglePass()
+    single_pass.runs_checkers_and_gets_failure()
+    single_pass.runs_checker_watchers_and_gets_success()

@@ -22,11 +22,14 @@ async def loop() -> types_.Result:
 
 async def run_single() -> None:
     """Run through the pocketwalk actions once."""
-    await signals.call(checkers.run)
-    watch_future = await signals.future(checkers.watch)
-    commit_future = await signals.future(source_control.commit)
-    await signals.wait_for(commit_future, watch_future, minimum_done=1, cancel_remaining=False)
-    await signals.cancel(watch_future)
+    check_result = await signals.call(checkers.run)
+    if check_result is checkers.Result.PASS:
+        watch_future = await signals.future(checkers.watch)
+        commit_future = await signals.future(source_control.commit)
+        await signals.wait_for(commit_future, watch_future, minimum_done=1, cancel_remaining=False)
+        await signals.cancel(watch_future)
+    else:
+        await signals.call(checkers.watch)
 
 
 # [ Internals ]
