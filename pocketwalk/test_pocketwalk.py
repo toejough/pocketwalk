@@ -91,7 +91,7 @@ class SinglePass:
         """Verify coro waits for either the commit or watchers, and the commit returns success."""
         testing.assertEqual(self._coro.signal, signals.WaitFor(
             self._state.watchers_future, self._state.commit_future,
-            minimum_done=1, cancel_remaining=False, timeout=None,
+            minimum_done=1, cancel_remaining=True, timeout=None,
         ))
         self._state.commit_future.result = source_control.Result.PASS
         result = handlers.WaitResult([self._state.commit_future], [self._state.watchers_future], timed_out=[])
@@ -101,21 +101,11 @@ class SinglePass:
         """Verify coro waits for either the commit or watcher, and the watcher returns success."""
         testing.assertEqual(self._coro.signal, signals.WaitFor(
             self._state.watchers_future, self._state.commit_future,
-            minimum_done=1, cancel_remaining=False, timeout=None,
+            minimum_done=1, cancel_remaining=True, timeout=None,
         ))
         self._state.watchers_future.result = checkers.Result.PASS
         result = handlers.WaitResult([self._state.watchers_future], [self._state.commit_future], timed_out=[])
         self._coro.receives_value(result)
-
-    def stops_watchers_and_gets_cancelled(self) -> None:
-        """Verify coro stops watchers and gets cancelled."""
-        testing.assertEqual(self._coro.signal, signals.Cancel(self._state.watchers_future))
-        self._coro.receives_value(checkers.Result.CANCELLED)
-
-    def stops_commit_and_gets_cancelled(self) -> None:
-        """Verify coro stops commit and gets cancelled."""
-        testing.assertEqual(self._coro.signal, signals.Cancel(self._state.commit_future))
-        self._coro.receives_value(source_control.Result.CANCELLED)
 
     def returns_none(self) -> None:
         """Verify coro returns None."""
@@ -142,7 +132,6 @@ def test_single_happy_path() -> None:
     single_pass.launches_checker_watchers()
     single_pass.launches_commit()
     single_pass.waits_for_commit_or_watchers_and_gets_commit_success()
-    single_pass.stops_watchers_and_gets_cancelled()
     single_pass.returns_none()
 
 
@@ -161,5 +150,4 @@ def test_single_change_during_commit() -> None:
     single_pass.launches_checker_watchers()
     single_pass.launches_commit()
     single_pass.waits_for_commit_or_watchers_and_gets_watcher_success()
-    single_pass.stops_commit_and_gets_cancelled()
     single_pass.returns_none()
