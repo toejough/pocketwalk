@@ -10,6 +10,7 @@ import types
 # [ -Third Party ]
 from dado import data_driven
 from runaway import extras, handlers, signals, testing
+import utaw
 # [ -Project ]
 import pocketwalk
 from pocketwalk.core import checkers, core, source_control
@@ -116,6 +117,10 @@ class SinglePass:
         testing.assertEqual(self._coro.signal, signals.Cancel(self._state.commit_future))
         self._coro.receives_value(source_control.Result.CANCELLED)
 
+    def returns_none(self) -> None:
+        """Verify coro returns None."""
+        utaw.assertIsNone(self._coro.returned)
+
 
 # [ Loop Tests ]
 @data_driven(['status'], {
@@ -138,6 +143,7 @@ def test_single_happy_path() -> None:
     single_pass.launches_commit()
     single_pass.waits_for_commit_or_watchers_and_gets_commit_success()
     single_pass.stops_watchers_and_gets_cancelled()
+    single_pass.returns_none()
 
 
 def test_single_failed_check() -> None:
@@ -145,6 +151,7 @@ def test_single_failed_check() -> None:
     single_pass = SinglePass()
     single_pass.runs_checkers_and_gets_failure()
     single_pass.runs_checker_watchers_and_gets_success()
+    single_pass.returns_none()
 
 
 def test_single_change_during_commit() -> None:
@@ -155,3 +162,4 @@ def test_single_change_during_commit() -> None:
     single_pass.launches_commit()
     single_pass.waits_for_commit_or_watchers_and_gets_watcher_success()
     single_pass.stops_commit_and_gets_cancelled()
+    single_pass.returns_none()
