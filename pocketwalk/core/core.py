@@ -26,8 +26,11 @@ async def run_single() -> None:
     if check_result is checkers.Result.PASS:
         watch_future = await signals.future(checkers.watch)
         commit_future = await signals.future(source_control.commit)
-        await signals.wait_for(commit_future, watch_future, minimum_done=1, cancel_remaining=False)
-        await signals.cancel(watch_future)
+        wait_result = await signals.wait_for(commit_future, watch_future, minimum_done=1, cancel_remaining=False)
+        if watch_future in wait_result.remaining:
+            await signals.cancel(watch_future)
+        if commit_future in wait_result.remaining:
+            await signals.cancel(commit_future)
     else:
         await signals.call(checkers.watch)
 

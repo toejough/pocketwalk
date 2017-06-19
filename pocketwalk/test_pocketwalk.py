@@ -111,6 +111,11 @@ class SinglePass:
         testing.assertEqual(self._coro.signal, signals.Cancel(self._state.watchers_future))
         self._coro.receives_value(checkers.Result.CANCELLED)
 
+    def stops_commit_and_gets_cancelled(self) -> None:
+        """Verify coro stops commit and gets cancelled."""
+        testing.assertEqual(self._coro.signal, signals.Cancel(self._state.commit_future))
+        self._coro.receives_value(source_control.Result.CANCELLED)
+
 
 # [ Loop Tests ]
 @data_driven(['status'], {
@@ -149,3 +154,4 @@ def test_single_change_during_commit() -> None:
     single_pass.launches_checker_watchers()
     single_pass.launches_commit()
     single_pass.waits_for_commit_or_watchers_and_gets_watcher_success()
+    single_pass.stops_commit_and_gets_cancelled()
