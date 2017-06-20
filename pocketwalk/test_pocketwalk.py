@@ -156,30 +156,30 @@ def test_loop(status: pocketwalk.Result) -> None:
 def test_single_happy_path() -> None:
     """Test a single pass happy path."""
     single_pass = SinglePass()
-    single_pass.runs_checkers_and_gets_success()
-    single_pass.runs_watched_commit_and_gets_commit_success()
+    single_pass.runs_checkers_and_gets(checkers.Result.PASS)
+    single_pass.runs_watched_commit_and_gets(source_control.Result.PASS)
     single_pass.returns_pass()
 
 
 def test_single_failed_check() -> None:
     """Test a single pass with failed check."""
     single_pass = SinglePass()
-    single_pass.runs_checkers_and_gets_failure()
-    single_pass.runs_watchers_and_gets_changed()
+    single_pass.runs_checkers_and_gets(checkers.Result.FAIL)
+    single_pass.runs_watchers_and_gets(checkers.WatchResult.CHANGED))
     single_pass.returns_pass()
 
 
 def test_single_change_during_commit() -> None:
     """Test a single pass with change during commit."""
     single_pass = SinglePass()
-    single_pass.runs_checkers_and_gets_success()
-    single_pass.runs_watched_commit_and_gets_changed()
+    single_pass.runs_checkers_and_gets(checkers.Result.PASS)
+    single_pass.runs_watched_commit_and_gets(checkers.WatchResult.CHANGED)
     single_pass.returns_pass()
 
 
 def test_single_failed_commit() -> None:
     """Test a single pass with a failed commit."""
     single_pass = SinglePass()
-    single_pass.runs_checkers_and_gets_success()
-    single_pass.runs_watched_commit_and_gets_commit_failure()
+    single_pass.runs_checkers_and_gets(checkers.Result.PASS)
+    single_pass.runs_watched_commit_and_gets(source_control.Result.FAIL)
     single_pass.returns_fail()
