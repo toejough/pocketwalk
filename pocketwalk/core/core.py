@@ -24,9 +24,7 @@ async def run_single() -> None:
     """Run through the pocketwalk actions once."""
     check_result = await signals.call(checkers.run)
     if check_result is checkers.Result.PASS:
-        watch_future = await signals.future(checkers.watch)
-        commit_future = await signals.future(source_control.commit)
-        await signals.wait_for(commit_future, watch_future, minimum_done=1, cancel_remaining=True)
+        await signals.call(_do_watched_commit)
     else:
         await signals.call(checkers.watch)
 
@@ -35,3 +33,10 @@ async def run_single() -> None:
 def _loop_predicate(state: typing.Any) -> None:
     assert state
     raise NotImplementedError
+
+
+async def _do_watched_commit() -> None:
+    """Perform a watched commit."""
+    watch_future = await signals.future(checkers.watch)
+    commit_future = await signals.future(source_control.commit)
+    await signals.wait_for(commit_future, watch_future, minimum_done=1, cancel_remaining=True)

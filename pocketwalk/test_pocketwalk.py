@@ -68,6 +68,21 @@ class SinglePass:
         testing.assertEqual(self._coro.signal, signals.Call(checkers.run))
         self._coro.receives_value(checkers.Result.FAIL)
 
+    def runs_watched_commit_and_gets_commit_success(self) -> None:
+        """Verify coro runs a watched commit and gets commit success."""
+        testing.assertEqual(self._coro.signal, signals.Call(core._do_watched_commit))
+        self._coro.receives_value(checkers.Result.PASS)
+
+    def runs_watchers_and_gets_changed(self) -> None:
+        """Verify coro runs watchers and gets a watcher change."""
+        testing.assertEqual(self._coro.signal, signals.Call(checkers.watch))
+        self._coro.receives_value(checkers.WatchResult.CHANGED)
+
+    def runs_watched_commit_and_gets_changed(self) -> None:
+        """Verify coro runs a watched commit and gets changed response."""
+        testing.assertEqual(self._coro.signal, signals.Call(core._do_watched_commit))
+        self._coro.receives_value(checkers.WatchResult.CHANGED)
+
     def launches_checker_watchers(self) -> None:
         """Verify coro launches the checkers' path watchers."""
         testing.assertEqual(self._coro.signal, signals.Future(checkers.watch))
@@ -129,9 +144,7 @@ def test_single_happy_path() -> None:
     """Test a single pass happy path."""
     single_pass = SinglePass()
     single_pass.runs_checkers_and_gets_success()
-    single_pass.launches_checker_watchers()
-    single_pass.launches_commit()
-    single_pass.waits_for_commit_or_watchers_and_gets_commit_success()
+    single_pass.runs_watched_commit_and_gets_commit_success()
     single_pass.returns_none()
 
 
@@ -139,7 +152,7 @@ def test_single_failed_check() -> None:
     """Test a single pass with failed check."""
     single_pass = SinglePass()
     single_pass.runs_checkers_and_gets_failure()
-    single_pass.runs_checker_watchers_and_gets_success()
+    single_pass.runs_watchers_and_gets_changed()
     single_pass.returns_none()
 
 
@@ -147,7 +160,5 @@ def test_single_change_during_commit() -> None:
     """Test a single pass with change during commit."""
     single_pass = SinglePass()
     single_pass.runs_checkers_and_gets_success()
-    single_pass.launches_checker_watchers()
-    single_pass.launches_commit()
-    single_pass.waits_for_commit_or_watchers_and_gets_watcher_success()
+    single_pass.runs_watched_commit_and_gets_changed()
     single_pass.returns_none()
