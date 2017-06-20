@@ -144,7 +144,7 @@ def test_single_failed_check() -> None:
 
 
 def test_single_change_during_commit() -> None:
-    """Test a single pass with failed check."""
+    """Test a single pass with change during commit."""
     single_pass = SinglePass()
     single_pass.runs_checkers_and_gets_success()
     single_pass.launches_checker_watchers()
