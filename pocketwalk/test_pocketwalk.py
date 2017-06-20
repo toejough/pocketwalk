@@ -71,7 +71,12 @@ class SinglePass:
     def runs_watched_commit_and_gets_commit_success(self) -> None:
         """Verify coro runs a watched commit and gets commit success."""
         testing.assertEqual(self._coro.signal, signals.Call(core._do_watched_commit))
-        self._coro.receives_value(checkers.Result.PASS)
+        self._coro.receives_value(source_control.Result.PASS)
+
+    def runs_watched_commit_and_gets_commit_failure(self) -> None:
+        """Verify coro runs a watched commit and gets commit failure."""
+        testing.assertEqual(self._coro.signal, signals.Call(core._do_watched_commit))
+        self._coro.receives_value(source_control.Result.FAIL)
 
     def runs_watchers_and_gets_changed(self) -> None:
         """Verify coro runs watchers and gets a watcher change."""
@@ -126,6 +131,14 @@ class SinglePass:
         """Verify coro returns None."""
         utaw.assertIsNone(self._coro.returned)
 
+    def returns_pass(self) -> None:
+        """Verify coro returns pass."""
+        utaw.assertIs(self._coro.returned, core.types_.Result.PASS)
+
+    def returns_fail(self) -> None:
+        """Verify coro returns fail."""
+        utaw.assertIs(self._coro.returned, core.types_.Result.FAIL)
+
 
 # [ Loop Tests ]
 @data_driven(['status'], {
@@ -145,7 +158,7 @@ def test_single_happy_path() -> None:
     single_pass = SinglePass()
     single_pass.runs_checkers_and_gets_success()
     single_pass.runs_watched_commit_and_gets_commit_success()
-    single_pass.returns_none()
+    single_pass.returns_pass()
 
 
 def test_single_failed_check() -> None:
@@ -153,7 +166,7 @@ def test_single_failed_check() -> None:
     single_pass = SinglePass()
     single_pass.runs_checkers_and_gets_failure()
     single_pass.runs_watchers_and_gets_changed()
-    single_pass.returns_none()
+    single_pass.returns_pass()
 
 
 def test_single_change_during_commit() -> None:
@@ -161,4 +174,12 @@ def test_single_change_during_commit() -> None:
     single_pass = SinglePass()
     single_pass.runs_checkers_and_gets_success()
     single_pass.runs_watched_commit_and_gets_changed()
-    single_pass.returns_none()
+    single_pass.returns_pass()
+
+
+def test_single_failed_commit() -> None:
+    """Test a single pass with a failed commit."""
+    single_pass = SinglePass()
+    single_pass.runs_checkers_and_gets_success()
+    single_pass.runs_watched_commit_and_gets_commit_failure()
+    single_pass.returns_fail()

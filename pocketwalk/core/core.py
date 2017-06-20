@@ -20,13 +20,16 @@ async def loop() -> types_.Result:
     return await signals.call(extras.do_while, _loop_predicate, run_single, None)  # type: ignore
 
 
-async def run_single() -> None:
+async def run_single() -> types_.Result:
     """Run through the pocketwalk actions once."""
     check_result = await signals.call(checkers.run)
     if check_result is checkers.Result.PASS:
-        await signals.call(_do_watched_commit)
+        commit_result = await signals.call(_do_watched_commit)
+        if commit_result is source_control.Result.FAIL:
+            return types_.Result.FAIL
     else:
         await signals.call(checkers.watch)
+    return types_.Result.PASS
 
 
 # [ Internals ]
