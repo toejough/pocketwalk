@@ -84,6 +84,24 @@ class SinglePass:
         utaw.assertIs(self._coro.returned, result)
 
 
+class LoopReturn:
+    """Loop return test steps."""
+
+    def __init__(self, status: ResultOrCommand) -> None:
+        """Init state."""
+        self._status = status
+
+        async def wrapper(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+            """Coro wrapper."""
+            return core._loop_predicate(*args, **kwargs)
+
+        self._coro = testing.TestWrapper(wrapper(status))
+
+    def returns(self, should_return: bool) -> None:
+        """Verify coro returns the result."""
+        utaw.assertIs(self._coro.returned, should_return)
+
+
 class CheckerLoop:
     """Checker loop test steps."""
 
@@ -181,6 +199,18 @@ def test_single_failed_check_and_exit_during_watch() -> None:
     single_pass.runs_checkers_and_gets(checkers.Result.FAIL)
     single_pass.runs_watchers_and_gets(pocketwalk.Command.EXIT)
     single_pass.returns(pocketwalk.Command.EXIT)
+
+
+# [ Loop Predicate Tests ]
+@data_driven(['status', 'should_return'], {
+    'good': [checkers.Result.PASS, True],
+    'bad': [checkers.Result.FAIL, True],
+    'exit': [pocketwalk.Command.EXIT, False],
+})
+def test_loop_return_on(status: ResultOrCommand, should_return: bool) -> None:
+    """Test the loop return conditions."""
+    loop_return = LoopReturn(status)
+    loop_return.returns(should_return)
 
 
 # [ Checker Loop Tests ]

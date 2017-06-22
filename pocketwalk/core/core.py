@@ -13,6 +13,11 @@ from runaway import extras, signals
 from pocketwalk.core import checkers, source_control, types_
 
 
+# [ Static Checking ]
+# pylint doesn't know this is a typedef
+ResultOrCommand = typing.Union[checkers.Result, types_.Command]  # pylint: disable=invalid-name
+
+
 # [ API ]
 async def loop() -> types_.Result:
     """Loop over the pocketwalk actions."""
@@ -20,7 +25,7 @@ async def loop() -> types_.Result:
     return await signals.call(extras.do_while, _loop_predicate, run_single, None)  # type: ignore
 
 
-async def run_single() -> typing.Union[types_.Result, types_.Command]:
+async def run_single() -> ResultOrCommand:
     """Run through the pocketwalk actions once."""
     check_result = await signals.call(checkers.run)
     if check_result is checkers.Result.PASS:
@@ -41,9 +46,8 @@ async def run_single() -> typing.Union[types_.Result, types_.Command]:
 
 
 # [ Internals ]
-def _loop_predicate(state: typing.Any) -> None:
-    assert state
-    raise NotImplementedError
+def _loop_predicate(state: ResultOrCommand) -> bool:
+    return state is not types_.Command.EXIT
 
 
 async def _do_watched_commit() -> None:
