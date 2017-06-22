@@ -221,7 +221,7 @@ def test_loop_return_on(status: ResultOrCommand, should_return: bool) -> None:
 })
 def test_checker_loop(status: ResultOrCommand) -> None:
     """Test the main loop."""
-    the_loop = Loop()
+    the_loop = CheckerLoop()
     the_loop.loops_single_and_gets_exit_status(status)
     the_loop.returns_exit_status()
 
