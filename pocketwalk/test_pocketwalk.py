@@ -84,6 +84,33 @@ class SinglePass:
         utaw.assertIs(self._coro.returned, result)
 
 
+class CheckerLoop:
+    """Checker loop test steps."""
+
+    def __init__(self) -> None:
+        """Init state."""
+        self._coro = testing.TestWrapper(checkers.run())
+        self._state = types.SimpleNamespace()
+
+    def loops_single_and_gets_exit_status(self, exit_status: ResultOrCommand) -> None:
+        """Verify the loop call and return."""
+        testing.assertEqual(
+            self._coro.signal,
+            signals.Call(
+                extras.do_while,
+                checkers._loop_predicate,
+                checkers._run_single,
+                None,
+            ),
+        )
+        self._coro.receives_value(exit_status)
+        self._state.status = exit_status
+
+    def returns_exit_status(self) -> None:
+        """Verify the exit call and return."""
+        testing.assertEqual(self._coro.returned, self._state.status)
+
+
 # [ Loop Tests ]
 @data_driven(['status'], {
     'good': [pocketwalk.Result.PASS],
@@ -156,7 +183,19 @@ def test_single_failed_check_and_exit_during_watch() -> None:
     single_pass.returns(pocketwalk.Command.EXIT)
 
 
-# [ Run checks ]
+# [ Checker Loop Tests ]
+@data_driven(['status'], {
+    'good': [checkers.Result.PASS],
+    'bad': [checkers.Result.FAIL],
+    'exit': [pocketwalk.Command.EXIT],
+})
+def test_checker_loop(status: ResultOrCommand) -> None:
+    """Test the main loop."""
+    the_loop = Loop()
+    the_loop.loops_single_and_gets_exit_status(status)
+    the_loop.returns_exit_status()
+
+
 # def test_run_checks():
 #     """Test running the checks."""
 #     checks = Checks()
@@ -193,15 +232,11 @@ def test_single_failed_check_and_exit_during_watch() -> None:
 #     checks.waits_for_any_future_and_gets_checker_pass()
 #     checks.returns_checkers_pass()
 
-"""
-Checker loop.
-
-Single iterations:
-    * launch new checkers
-    * cancel old checkers
-    * watch files of finished checkers
-    * watch checker list for changes
-    * watch running checkers for results
-    * watch command
-    * wait and add/cancel/pass/fail/exit
-"""
+# Single iterations:
+#     * launch new checkers
+#     * cancel old checkers
+#     * watch files of finished checkers
+#     * watch checker list for changes
+#     * watch running checkers for results
+#     * watch command
+#     * wait and add/cancel/pass/fail/exit
