@@ -125,6 +125,14 @@ def test_single_change_during_commit() -> None:
     single_pass.returns(core.types_.Result.PASS)
 
 
+def test_single_exit_during_commit() -> None:
+    """Test a single pass with exit signal during commit."""
+    single_pass = SinglePass()
+    single_pass.runs_checkers_and_gets(checkers.Result.PASS)
+    single_pass.runs_watched_commit_and_gets(checkers.Result.EXIT)
+    single_pass.returns(core.types_.Result.EXIT)
+
+
 def test_single_failed_commit() -> None:
     """Test a single pass with a failed commit."""
     single_pass = SinglePass()
