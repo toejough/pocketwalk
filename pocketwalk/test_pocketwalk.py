@@ -154,3 +154,54 @@ def test_single_failed_check_and_exit_during_watch() -> None:
     single_pass.runs_checkers_and_gets(checkers.Result.FAIL)
     single_pass.runs_watchers_and_gets(pocketwalk.Command.EXIT)
     single_pass.returns(pocketwalk.Command.EXIT)
+
+
+# [ Run checks ]
+# def test_run_checks():
+#     """Test running the checks."""
+#     checks = Checks()
+#     checks.loads_checker_list_and_gets_some()
+#     checks.launches_checkers()
+#     checks.launches_checker_list_watcher()
+#     checks.launches_command_watcher()
+#     checks.waits_for_any_future_and_gets_checkers_pass()
+#     checks.returns_checkers_pass()
+
+
+# def test_run_checks():
+#     """Test running the checks."""
+#     checks = Checks()
+#     checks.loads_checker_list_and_gets_some()
+#     checks.launches_checkers()
+#     checks.launches_checker_list_watcher()
+#     checks.launches_command_watcher()
+#     checks.waits_for_any_future_and_gets_checkers_removed()
+#     checks.cancels_removed_checkers_and_gets_success()
+#     checks.waits_for_any_future_and_gets_checkers_pass()
+#     checks.returns_checkers_pass()
+
+
+# def test_run_checks():
+#     """Test running the checks."""
+#     checks = Checks()
+#     checks.loads_checker_list_and_gets_some()
+#     checks.launches_checkers()
+#     checks.launches_checker_list_watcher()
+#     checks.launches_command_watcher()
+#     checks.waits_for_any_future_and_gets_checker_pass()
+#     checks.waits_for_any_future_and_gets_checker_pass()
+#     checks.waits_for_any_future_and_gets_checker_pass()
+#     checks.returns_checkers_pass()
+
+"""
+Checker loop.
+
+Single iterations:
+    * launch new checkers
+    * cancel old checkers
+    * watch files of finished checkers
+    * watch checker list for changes
+    * watch running checkers for results
+    * watch command
+    * wait and add/cancel/pass/fail/exit
+"""
