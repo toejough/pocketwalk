@@ -76,13 +76,9 @@ class SinglePass:
         testing.assertEqual(self._coro.signal, signals.Call(checkers.watch))
         self._coro.receives_value(result)
 
-    def returns_pass(self) -> None:
-        """Verify coro returns pass."""
-        utaw.assertIs(self._coro.returned, core.types_.Result.PASS)
-
-    def returns_fail(self) -> None:
-        """Verify coro returns fail."""
-        utaw.assertIs(self._coro.returned, core.types_.Result.FAIL)
+    def returns(self, result: core.types_.Result) -> None:
+        """Verify coro returns the result."""
+        utaw.assertIs(self._coro.returned, result)
 
 
 # [ Loop Tests ]
@@ -103,7 +99,7 @@ def test_single_happy_path() -> None:
     single_pass = SinglePass()
     single_pass.runs_checkers_and_gets(checkers.Result.PASS)
     single_pass.runs_watched_commit_and_gets(source_control.Result.PASS)
-    single_pass.returns_pass()
+    single_pass.returns(core.types_.Result.PASS)
 
 
 def test_single_failed_check() -> None:
@@ -111,7 +107,7 @@ def test_single_failed_check() -> None:
     single_pass = SinglePass()
     single_pass.runs_checkers_and_gets(checkers.Result.FAIL)
     single_pass.runs_watchers_and_gets(checkers.WatchResult.CHANGED)
-    single_pass.returns_pass()
+    single_pass.returns(core.types_.Result.PASS)
 
 
 def test_single_change_during_commit() -> None:
@@ -119,7 +115,7 @@ def test_single_change_during_commit() -> None:
     single_pass = SinglePass()
     single_pass.runs_checkers_and_gets(checkers.Result.PASS)
     single_pass.runs_watched_commit_and_gets(checkers.WatchResult.CHANGED)
-    single_pass.returns_pass()
+    single_pass.returns(core.types_.Result.PASS)
 
 
 def test_single_failed_commit() -> None:
@@ -127,4 +123,4 @@ def test_single_failed_commit() -> None:
     single_pass = SinglePass()
     single_pass.runs_checkers_and_gets(checkers.Result.PASS)
     single_pass.runs_watched_commit_and_gets(source_control.Result.FAIL)
-    single_pass.returns_fail()
+    single_pass.returns(core.types_.Result.FAIL)
