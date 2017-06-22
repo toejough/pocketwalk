@@ -27,8 +27,10 @@ async def run_single() -> types_.Result:
         commit_result = await signals.call(_do_watched_commit)
         if commit_result is source_control.Result.FAIL:
             return types_.Result.FAIL
-    else:
+    elif check_result is checkers.Result.FAIL:
         await signals.call(checkers.watch)
+    else:
+        return types_.Result.EXIT
     return types_.Result.PASS
 
 

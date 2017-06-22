@@ -110,6 +110,13 @@ def test_single_failed_check() -> None:
     single_pass.returns(core.types_.Result.PASS)
 
 
+def test_single_exit_during_check() -> None:
+    """Test a single pass with exit signal during check."""
+    single_pass = SinglePass()
+    single_pass.runs_checkers_and_gets(checkers.Result.EXIT)
+    single_pass.returns(core.types_.Result.EXIT)
+
+
 def test_single_change_during_commit() -> None:
     """Test a single pass with change during commit."""
     single_pass = SinglePass()
