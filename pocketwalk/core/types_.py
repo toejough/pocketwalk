@@ -15,3 +15,9 @@ class Result(enum.Enum):
     PASS = enum.auto()
     FAIL = enum.auto()
     EXIT = enum.auto()
+
+
+class Command(enum.Enum):
+    """Command enums."""
+
+    EXIT = enum.auto()

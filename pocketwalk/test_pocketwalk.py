@@ -23,6 +23,9 @@ from pocketwalk.core import checkers, core, source_control
 # pylint: disable=protected-access
 # pylint doesn't know this is a typedef
 AnyResult = typing.Union[checkers.Result, checkers.WatchResult]  # pylint: disable=invalid-name
+ResultOrCommand = typing.Union[checkers.Result, pocketwalk.Command]  # pylint: disable=invalid-name
+AnyResultOrCommand = typing.Union[AnyResult, pocketwalk.Command]  # pylint: disable=invalid-name
+WatchResultOrCommand = typing.Union[checkers.WatchResult, pocketwalk.Command]  # pylint: disable=invalid-name
 
 
 # [ Test Objects ]
@@ -61,22 +64,22 @@ class SinglePass:
         self._coro = testing.TestWrapper(pocketwalk.run_single())
         self._state = types.SimpleNamespace()
 
-    def runs_checkers_and_gets(self, result: checkers.Result) -> None:
+    def runs_checkers_and_gets(self, result: ResultOrCommand) -> None:
         """Verify coro runs the checkers and gets the given result."""
         testing.assertEqual(self._coro.signal, signals.Call(checkers.run))
         self._coro.receives_value(result)
 
-    def runs_watched_commit_and_gets(self, result: AnyResult) -> None:
+    def runs_watched_commit_and_gets(self, result: AnyResultOrCommand) -> None:
         """Verify coro runs a watched commit and gets the given result."""
         testing.assertEqual(self._coro.signal, signals.Call(core._do_watched_commit))
         self._coro.receives_value(result)
 
-    def runs_watchers_and_gets(self, result: checkers.WatchResult) -> None:
+    def runs_watchers_and_gets(self, result: WatchResultOrCommand) -> None:
         """Verify coro runs watchers and gets the given result."""
         testing.assertEqual(self._coro.signal, signals.Call(checkers.watch))
         self._coro.receives_value(result)
 
-    def returns(self, result: core.types_.Result) -> None:
+    def returns(self, result: AnyResultOrCommand) -> None:
         """Verify coro returns the result."""
         utaw.assertIs(self._coro.returned, result)
 
@@ -94,6 +97,7 @@ def test_loop(status: pocketwalk.Result) -> None:
 
 
 # [ Single Tests ]
+# First branch
 def test_single_happy_path() -> None:
     """Test a single pass happy path."""
     single_pass = SinglePass()
@@ -113,10 +117,11 @@ def test_single_failed_check() -> None:
 def test_single_exit_during_check() -> None:
     """Test a single pass with exit signal during check."""
     single_pass = SinglePass()
-    single_pass.runs_checkers_and_gets(checkers.Result.EXIT)
-    single_pass.returns(core.types_.Result.EXIT)
+    single_pass.runs_checkers_and_gets(pocketwalk.Command.EXIT)
+    single_pass.returns(pocketwalk.Command.EXIT)
 
 
+# Second Branch - after pass
 def test_single_change_during_commit() -> None:
     """Test a single pass with change during commit."""
     single_pass = SinglePass()
@@ -125,17 +130,26 @@ def test_single_change_during_commit() -> None:
     single_pass.returns(core.types_.Result.PASS)
 
 
-def test_single_exit_during_commit() -> None:
-    """Test a single pass with exit signal during commit."""
-    single_pass = SinglePass()
-    single_pass.runs_checkers_and_gets(checkers.Result.PASS)
-    single_pass.runs_watched_commit_and_gets(checkers.Result.EXIT)
-    single_pass.returns(core.types_.Result.EXIT)
-
-
 def test_single_failed_commit() -> None:
     """Test a single pass with a failed commit."""
     single_pass = SinglePass()
     single_pass.runs_checkers_and_gets(checkers.Result.PASS)
     single_pass.runs_watched_commit_and_gets(source_control.Result.FAIL)
     single_pass.returns(core.types_.Result.FAIL)
+
+
+def test_single_exit_during_commit() -> None:
+    """Test a single pass with exit signal during commit."""
+    single_pass = SinglePass()
+    single_pass.runs_checkers_and_gets(checkers.Result.PASS)
+    single_pass.runs_watched_commit_and_gets(pocketwalk.Command.EXIT)
+    single_pass.returns(pocketwalk.Command.EXIT)
+
+
+# Second Branch - after fail
+def test_single_failed_check_and_exit_during_watch() -> None:
+    """Test a single pass with failed check, and exiting during watch."""
+    single_pass = SinglePass()
+    single_pass.runs_checkers_and_gets(checkers.Result.FAIL)
+    single_pass.runs_watchers_and_gets(pocketwalk.Command.EXIT)
+    single_pass.returns(pocketwalk.Command.EXIT)
