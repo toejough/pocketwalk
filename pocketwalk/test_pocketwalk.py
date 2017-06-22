@@ -7,6 +7,7 @@
 # [ Imports ]
 # [ -Python ]
 import types
+import typing
 # [ -Third Party ]
 from dado import data_driven
 from runaway import extras, handlers, signals, testing
@@ -20,6 +21,8 @@ from pocketwalk.core import checkers, core, source_control
 # disable protected access checks - this is a test file, and we're going to
 # verify use of protected attributes.
 # pylint: disable=protected-access
+# pylint doesn't know this is a typedef
+AnyResult = typing.Union[checkers.Result, checkers.WatchResult]  # pylint: disable=invalid-name
 
 
 # [ Test Objects ]
@@ -58,30 +61,20 @@ class SinglePass:
         self._coro = testing.TestWrapper(pocketwalk.run_single())
         self._state = types.SimpleNamespace()
 
-    def runs_checkers_and_gets_success(self) -> None:
-        """Verify coro runs the checkers and gets success."""
+    def runs_checkers_and_gets(self, result: checkers.Result) -> None:
+        """Verify coro runs the checkers and gets the given result."""
         testing.assertEqual(self._coro.signal, signals.Call(checkers.run))
-        self._coro.receives_value(checkers.Result.PASS)
+        self._coro.receives_value(result)
 
-    def runs_checkers_and_gets_failure(self) -> None:
-        """Verify coro runs the checkers and gets failure."""
-        testing.assertEqual(self._coro.signal, signals.Call(checkers.run))
-        self._coro.receives_value(checkers.Result.FAIL)
-
-    def runs_watched_commit_and_gets_commit_success(self) -> None:
-        """Verify coro runs a watched commit and gets commit success."""
+    def runs_watched_commit_and_gets(self, result: AnyResult) -> None:
+        """Verify coro runs a watched commit and gets the given result."""
         testing.assertEqual(self._coro.signal, signals.Call(core._do_watched_commit))
-        self._coro.receives_value(source_control.Result.PASS)
+        self._coro.receives_value(result)
 
-    def runs_watched_commit_and_gets_commit_failure(self) -> None:
-        """Verify coro runs a watched commit and gets commit failure."""
-        testing.assertEqual(self._coro.signal, signals.Call(core._do_watched_commit))
-        self._coro.receives_value(source_control.Result.FAIL)
-
-    def runs_watchers_and_gets_changed(self) -> None:
-        """Verify coro runs watchers and gets a watcher change."""
+    def runs_watchers_and_gets(self, result: checkers.WatchResult) -> None:
+        """Verify coro runs watchers and gets the given result."""
         testing.assertEqual(self._coro.signal, signals.Call(checkers.watch))
-        self._coro.receives_value(checkers.WatchResult.CHANGED)
+        self._coro.receives_value(result)
 
     def runs_watched_commit_and_gets_changed(self) -> None:
         """Verify coro runs a watched commit and gets changed response."""
@@ -165,7 +158,7 @@ def test_single_failed_check() -> None:
     """Test a single pass with failed check."""
     single_pass = SinglePass()
     single_pass.runs_checkers_and_gets(checkers.Result.FAIL)
-    single_pass.runs_watchers_and_gets(checkers.WatchResult.CHANGED))
+    single_pass.runs_watchers_and_gets(checkers.WatchResult.CHANGED)
     single_pass.returns_pass()
 
 
