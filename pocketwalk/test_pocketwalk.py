@@ -10,7 +10,7 @@ import types
 import typing
 # [ -Third Party ]
 from dado import data_driven
-from runaway import extras, handlers, signals, testing
+from runaway import extras, signals, testing
 import utaw
 # [ -Project ]
 import pocketwalk
@@ -75,54 +75,6 @@ class SinglePass:
         """Verify coro runs watchers and gets the given result."""
         testing.assertEqual(self._coro.signal, signals.Call(checkers.watch))
         self._coro.receives_value(result)
-
-    def runs_watched_commit_and_gets_changed(self) -> None:
-        """Verify coro runs a watched commit and gets changed response."""
-        testing.assertEqual(self._coro.signal, signals.Call(core._do_watched_commit))
-        self._coro.receives_value(checkers.WatchResult.CHANGED)
-
-    def launches_checker_watchers(self) -> None:
-        """Verify coro launches the checkers' path watchers."""
-        testing.assertEqual(self._coro.signal, signals.Future(checkers.watch))
-        the_future = handlers.Future(checkers.watch)
-        self._state.watchers_future = the_future
-        self._coro.receives_value(the_future)
-
-    def runs_checker_watchers_and_gets_success(self) -> None:
-        """Verify coro runs the checker watchers and gets success."""
-        testing.assertEqual(self._coro.signal, signals.Call(checkers.watch))
-        self._coro.receives_value(checkers.Result.PASS)
-
-    def launches_commit(self) -> None:
-        """Verify coro launches the commit process."""
-        testing.assertEqual(self._coro.signal, signals.Future(source_control.commit))
-        the_future = handlers.Future(source_control.commit)
-        self._state.commit_future = the_future
-        self._coro.receives_value(the_future)
-
-    def waits_for_commit_or_watchers_and_gets_commit_success(self) -> None:
-        """Verify coro waits for either the commit or watchers, and the commit returns success."""
-        testing.assertEqual(self._coro.signal, signals.WaitFor(
-            self._state.watchers_future, self._state.commit_future,
-            minimum_done=1, cancel_remaining=True, timeout=None,
-        ))
-        self._state.commit_future.result = source_control.Result.PASS
-        result = handlers.WaitResult([self._state.commit_future], [self._state.watchers_future], timed_out=[])
-        self._coro.receives_value(result)
-
-    def waits_for_commit_or_watchers_and_gets_watcher_success(self) -> None:
-        """Verify coro waits for either the commit or watcher, and the watcher returns success."""
-        testing.assertEqual(self._coro.signal, signals.WaitFor(
-            self._state.watchers_future, self._state.commit_future,
-            minimum_done=1, cancel_remaining=True, timeout=None,
-        ))
-        self._state.watchers_future.result = checkers.Result.PASS
-        result = handlers.WaitResult([self._state.watchers_future], [self._state.commit_future], timed_out=[])
-        self._coro.receives_value(result)
-
-    def returns_none(self) -> None:
-        """Verify coro returns None."""
-        utaw.assertIsNone(self._coro.returned)
 
     def returns_pass(self) -> None:
         """Verify coro returns pass."""
