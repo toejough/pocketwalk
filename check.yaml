@@ -7,4 +7,4 @@ checks:
     - [flake8]
     - [dodgy]
     - [mypy, --strict, --ignore-missing-imports]
-    - [pytest, -v, --cov=pocketwalk, --cov-report, 'term-missing:skip-covered']
+    - [pytest, -v, --cov=pocketwalk, --cov-report, 'term-missing:skip-covered', --cov-branch, --no-cov-on-fail, --cov-fail-under=100]

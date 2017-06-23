@@ -5,10 +5,10 @@
 
 
 # [ Import ]
-from pocketwalk.core.types_ import Result
+# from pocketwalk.core.types_ import Result
 
 
-# [ API ]
-def commit() -> Result:
-    """Commit the changes."""
-    return Result.PASS
+# # [ API ]
+# def commit() -> Result:
+#     """Commit the changes."""
+#     return Result.PASS

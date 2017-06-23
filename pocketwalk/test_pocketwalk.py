@@ -14,7 +14,6 @@ from runaway import extras, signals, testing
 import utaw
 # [ -Project ]
 import pocketwalk
-from pocketwalk.core import checkers
 
 
 # [ Static Checking ]
@@ -23,7 +22,7 @@ from pocketwalk.core import checkers
 # pylint: disable=protected-access
 # pylint doesn't know this is a typedef
 # AnyResult = typing.Union[checkers.Result, checkers.WatchResult]  # pylint: disable=invalid-name
-ResultOrCommand = typing.Union[checkers.Result, pocketwalk.Command]  # pylint: disable=invalid-name
+# ResultOrCommand = typing.Union[checkers.Result, pocketwalk.Command]  # pylint: disable=invalid-name
 # AnyResultOrCommand = typing.Union[AnyResult, pocketwalk.Command]  # pylint: disable=invalid-name
 # WatchResultOrCommand = typing.Union[checkers.WatchResult, pocketwalk.Command]  # pylint: disable=invalid-name
 
@@ -56,32 +55,17 @@ class Loop:
         utaw.assertIsNone(self._coro.returned)
 
 
-# class SinglePass:
-#     """Single Pass test steps."""
+class RunSingle:
+    """Run the test steps a single time."""
 
-#     def __init__(self) -> None:
-#         """Init state."""
-#         self._coro = testing.TestWrapper(pocketwalk.run_single())
-#         self._state = types.SimpleNamespace()
+    def __init__(self) -> None:
+        """Init state."""
+        self._coro = testing.TestWrapper(pocketwalk.run_single())
+        self._state = types.SimpleNamespace()
 
-#     def runs_checkers_and_gets(self, result: ResultOrCommand) -> None:
-#         """Verify coro runs the checkers and gets the given result."""
-#         testing.assertEqual(self._coro.signal, signals.Call(core.run_checks))
-#         self._coro.receives_value(result)
-
-#     def runs_watched_commit_and_gets(self, result: AnyResultOrCommand) -> None:
-#         """Verify coro runs a watched commit and gets the given result."""
-#         testing.assertEqual(self._coro.signal, signals.Call(core._do_watched_commit))
-#         self._coro.receives_value(result)
-
-#     def runs_watchers_and_gets(self, result: WatchResultOrCommand) -> None:
-#         """Verify coro runs watchers and gets the given result."""
-#         testing.assertEqual(self._coro.signal, signals.Call(checkers.watch))
-#         self._coro.receives_value(result)
-
-#     def returns(self, result: AnyResultOrCommand) -> None:
-#         """Verify coro returns the result."""
-#         utaw.assertIs(self._coro.returned, result)
+    def raises_not_implemented_error(self) -> None:
+        """Verify function raises NotImplementedError."""
+        utaw.assertIsInstance(self._coro.error, NotImplementedError)
 
 
 # class LoopReturn:
@@ -162,9 +146,17 @@ def test_loop() -> None:
     When called, the main loop should run, and when the passed in predicate evaluates to False,
     return None.
     """
-    the_loop = Loop(lambda state: False)
+    # coverage.py flags this as a partial branch...
+    the_loop = Loop(lambda state: False)  # pragma: no branch
     the_loop.loops_single_and_gets_none()
     the_loop.returns_none()
+
+
+# [ NotImplementedError Tests ]
+def test_run_single() -> None:
+    """Test that run_single raises NotImplementedError."""
+    run_single = RunSingle()
+    run_single.raises_not_implemented_error()
 
 
 # # [ Single Tests ]
