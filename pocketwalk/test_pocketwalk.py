@@ -66,7 +66,7 @@ class SinglePass:
 
     def runs_checkers_and_gets(self, result: ResultOrCommand) -> None:
         """Verify coro runs the checkers and gets the given result."""
-        testing.assertEqual(self._coro.signal, signals.Call(checkers.run))
+        testing.assertEqual(self._coro.signal, signals.Call(core.run_checks))
         self._coro.receives_value(result)
 
     def runs_watched_commit_and_gets(self, result: AnyResultOrCommand) -> None:
@@ -102,12 +102,37 @@ class LoopReturn:
         utaw.assertIs(self._coro.returned, should_return)
 
 
+class CheckerRun:
+    """Run the Checker."""
+
+    def __init__(self) -> None:
+        """Init state."""
+        self._coro = testing.TestWrapper(core.run_checks())
+        self._state = types.SimpleNamespace()
+
+    def launches_checker_loop_and_gets(self, checker_loop_future: handlers.Future) -> None:
+        """Launches checker loop and gets future."""
+        testing.assertEqual(
+            self._coro.signal,
+            signals.Future(checkers.loop),
+        )
+        self._coro.receives_value(checker_loop_future)
+
+    def launches_command_watcher_loop_and_gets(self, command_watcher_loop_future: handlers.Future) -> None:
+        """Launches command watcher loop and gets future."""
+        testing.assertEqual(
+            self._coro.signal,
+            signals.Future(core._watch_for_command),
+        )
+        self._coro.receives_value(command_watcher_loop_future)
+
+
 class CheckerLoop:
     """Checker loop test steps."""
 
     def __init__(self) -> None:
         """Init state."""
-        self._coro = testing.TestWrapper(checkers.run())
+        self._coro = testing.TestWrapper(checkers.loop())
         self._state = types.SimpleNamespace()
 
     def loops_single_and_gets_exit_status(self, exit_status: ResultOrCommand) -> None:
@@ -213,6 +238,18 @@ def test_loop_return_on(status: ResultOrCommand, should_return: bool) -> None:
     loop_return.returns(should_return)
 
 
+# [ Checker Run Tests ]
+def test_checker_run() -> None:
+    """Test running checkers."""
+    checker_run = CheckerRun()
+    checker_future = handlers.Future(checkers.loop)
+    checker_run.launches_checker_loop_and_gets(checker_future)
+    command_watcher_future = handlers.Future(core._watch_for_command)
+    checker_run.launches_command_watcher_loop_and_gets(command_watcher_future)
+    # checker_run.waits_for_checker_or_command_and_gets(handlers.WaitResult([checker_future], [command_watcher_future], []))
+    # checker_run.returns(pocketwalk.Command.EXIT)
+
+
 # [ Checker Loop Tests ]
 @data_driven(['status'], {
     'good': [checkers.Result.PASS],
@@ -227,14 +264,10 @@ def test_checker_loop(status: ResultOrCommand) -> None:
 
 
 # [ Checker Single Run ]
-def test_checker_single_happy_path() -> None:
-    """Test Checker single run."""
-    checker_single = CheckerSingle()
+# def test_checker_single_happy_path() -> None:
+#     """Test Checker single run."""
+#     checker_single = CheckerSingle()
 
-
-# launch checker runner
-# launch command watcher
-# wait for one to come back
 
 # if not running, launch checker_list watcher
 # launch queued checkers

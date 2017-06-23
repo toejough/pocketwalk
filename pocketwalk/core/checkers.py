@@ -21,7 +21,7 @@ class WatchResult(enum.Enum):
 
 
 # [ API ]
-async def run() -> Result:
+async def loop() -> Result:
     """Run the static checkers concurrently."""
     # mypy says this returns any...technically true?
     return await signals.call(extras.do_while, _loop_predicate, _run_single, None)  # type: ignore

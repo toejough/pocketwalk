@@ -27,7 +27,7 @@ async def loop() -> types_.Result:
 
 async def run_single() -> ResultOrCommand:
     """Run through the pocketwalk actions once."""
-    check_result = await signals.call(checkers.run)
+    check_result = await signals.call(run_checks)
     if check_result is checkers.Result.PASS:
         commit_result = await signals.call(_do_watched_commit)
         if commit_result is source_control.Result.FAIL:
@@ -45,6 +45,15 @@ async def run_single() -> ResultOrCommand:
     return types_.Result.PASS
 
 
+async def run_checks() -> ResultOrCommand:
+    """Run the checkers and the command watcher."""
+    checker_future = await signals.future(checkers.loop)
+    command_future = await signals.future(_watch_for_command)
+    results = await signals.wait_for(checker_future, command_future, minimum_done=1)
+    # mypy thinks this is type any
+    return results[0].result  # type: ignore
+
+
 # [ Internals ]
 def _loop_predicate(state: ResultOrCommand) -> bool:
     return state is not types_.Command.EXIT
@@ -55,3 +64,8 @@ async def _do_watched_commit() -> None:
     watch_future = await signals.future(checkers.watch)
     commit_future = await signals.future(source_control.commit)
     await signals.wait_for(commit_future, watch_future, minimum_done=1, cancel_remaining=True)
+
+
+async def _watch_for_command() -> None:
+    """Watch for a command."""
+    raise NotImplementedError
