@@ -19,10 +19,22 @@ ResultOrCommand = typing.Union[checkers.Result, types_.Command]  # pylint: disab
 
 
 # [ API ]
-async def loop() -> types_.Result:
-    """Loop over the pocketwalk actions."""
+async def loop(predicate: typing.Callable[[typing.Any], bool]) -> types_.Result:
+    """
+    Loop over the pocketwalk core actions.
+
+    ---
+    Return when the passed in predicate indicates.
+    ---
+
+    args:
+        - predicate: a predicate function taking one arbitrary state object (the output of `run_single`),
+          and returning `True` if the loop should continue running and `False` if it should stop.
+
+    returns: the final arbitrary state.
+    """
     # mypy says this returns any...technically true?
-    return await signals.call(extras.do_while, _loop_predicate, run_single, None)  # type: ignore
+    return await signals.call(extras.do_while, predicate, run_single, None)  # type: ignore
 
 
 async def run_single() -> ResultOrCommand:

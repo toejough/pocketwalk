@@ -14,7 +14,7 @@ from runaway import extras, signals, testing
 import utaw
 # [ -Project ]
 import pocketwalk
-from pocketwalk.core import checkers, core
+from pocketwalk.core import checkers
 
 
 # [ Static Checking ]
@@ -32,9 +32,10 @@ ResultOrCommand = typing.Union[checkers.Result, pocketwalk.Command]  # pylint: d
 class Loop:
     """Loop test steps."""
 
-    def __init__(self) -> None:
+    def __init__(self, loop_predicate: typing.Callable[[typing.Any], bool]) -> None:
         """Init state."""
-        self._coro = testing.TestWrapper(pocketwalk.loop())
+        self._loop_predicate = loop_predicate
+        self._coro = testing.TestWrapper(pocketwalk.loop(self._loop_predicate))
         self._state = types.SimpleNamespace()
 
     def loops_single_and_gets_none(self) -> None:
@@ -43,7 +44,7 @@ class Loop:
             self._coro.signal,
             signals.Call(
                 extras.do_while,
-                core._loop_predicate,
+                self._loop_predicate,
                 pocketwalk.run_single,
                 None,
             ),
@@ -158,13 +159,10 @@ def test_loop() -> None:
     """
     Test the main loop.
 
-    When called, the main loop should run, and eventually return None.
-
-    Exactly *when* to return should be handled internally.  The point of this test is to
-    validate that when the loop is started, the body is run in a loop, and when the loop
-    is done, it returns None.
+    When called, the main loop should run, and when the passed in predicate evaluates to False,
+    return None.
     """
-    the_loop = Loop()
+    the_loop = Loop(lambda state: False)
     the_loop.loops_single_and_gets_none()
     the_loop.returns_none()
 
