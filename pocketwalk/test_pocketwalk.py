@@ -10,7 +10,7 @@ import types
 import typing
 # [ -Third Party ]
 from dado import data_driven
-from runaway import extras, signals, testing
+from runaway import extras, signals, testing, handlers
 import utaw
 # [ -Project ]
 import pocketwalk
@@ -226,47 +226,23 @@ def test_checker_loop(status: ResultOrCommand) -> None:
     the_loop.returns_exit_status()
 
 
-# def test_run_checks():
-#     """Test running the checks."""
-#     checks = Checks()
-#     checks.loads_checker_list_and_gets_some()
-#     checks.launches_checkers()
-#     checks.launches_checker_list_watcher()
-#     checks.launches_command_watcher()
-#     checks.waits_for_any_future_and_gets_checkers_pass()
-#     checks.returns_checkers_pass()
+# [ Checker Single Run ]
+def test_checker_single_happy_path() -> None:
+    """Test Checker single run."""
+    checker_single = CheckerSingle()
 
 
-# def test_run_checks():
-#     """Test running the checks."""
-#     checks = Checks()
-#     checks.loads_checker_list_and_gets_some()
-#     checks.launches_checkers()
-#     checks.launches_checker_list_watcher()
-#     checks.launches_command_watcher()
-#     checks.waits_for_any_future_and_gets_checkers_removed()
-#     checks.cancels_removed_checkers_and_gets_success()
-#     checks.waits_for_any_future_and_gets_checkers_pass()
-#     checks.returns_checkers_pass()
+# launch checker runner
+# launch command watcher
+# wait for one to come back
 
+# if not running, launch checker_list watcher
+# launch queued checkers
+# cancel removed checkers
+# cancel removed watchers
+# launch watchers for finished checkers
+# wait for running checkers, running_watchers, or checker list update
+# update state
+# return state
 
-# def test_run_checks():
-#     """Test running the checks."""
-#     checks = Checks()
-#     checks.loads_checker_list_and_gets_some()
-#     checks.launches_checkers()
-#     checks.launches_checker_list_watcher()
-#     checks.launches_command_watcher()
-#     checks.waits_for_any_future_and_gets_checker_pass()
-#     checks.waits_for_any_future_and_gets_checker_pass()
-#     checks.waits_for_any_future_and_gets_checker_pass()
-#     checks.returns_checkers_pass()
-
-# Single iterations:
-#     * launch new checkers
-#     * cancel old checkers
-#     * watch files of finished checkers
-#     * watch checker list for changes
-#     * watch running checkers for results
-#     * watch command
-#     * wait and add/cancel/pass/fail/exit
+# keep looping if any checkers still running
