@@ -155,7 +155,15 @@ class Loop:
 
 # [ Loop Tests ]
 def test_loop() -> None:
-    """Test the main loop."""
+    """
+    Test the main loop.
+
+    When called, the main loop should run, and eventually return None.
+
+    Exactly *when* to return should be handled internally.  The point of this test is to
+    validate that when the loop is started, the body is run in a loop, and when the loop
+    is done, it returns None.
+    """
     the_loop = Loop()
     the_loop.loops_single_and_gets_none()
     the_loop.returns_none()
