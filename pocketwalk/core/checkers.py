@@ -51,6 +51,7 @@ async def _run_single(state: typing.Any) -> typing.Any:
     await signals.call(_launch_new_checkers)
     await signals.call(_relaunch_changed_checkers)
     await signals.call(_launch_watchers_for_completed_checkers)
+    await signals.call(_launch_watcher_for_checker_list)
     return state
 
 
@@ -81,4 +82,9 @@ def _relaunch_changed_checkers() -> None:
 
 def _launch_watchers_for_completed_checkers() -> None:
     """Launch watchers for completed checkers."""
+    raise NotImplementedError()  # pragma: no cover
+
+
+def _launch_watcher_for_checker_list() -> None:
+    """Launch watcher for checker list."""
     raise NotImplementedError()  # pragma: no cover
