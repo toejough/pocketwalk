@@ -10,8 +10,6 @@ import enum
 import typing
 # [ -Third Party ]
 from runaway import extras, signals
-# [ -Project ]
-# from pocketwalk.core.types_ import Result
 
 
 # [ API ]
@@ -35,11 +33,6 @@ async def run_until_all_pass() -> None:
 def watch_until_change() -> WatchResult:
     """Run the watchers until a change."""
     raise NotImplementedError  # pragma: no cover
-
-
-# def watch() -> WatchResult:
-#     """Watch the static checker files concurrently."""
-#     return WatchResult.CHANGED
 
 
 # [ Internals ]
