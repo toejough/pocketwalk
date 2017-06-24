@@ -17,7 +17,7 @@ async def loop() -> None:
     await signals.call(extras.run_forever, run_single, None)
 
 
-async def run_single() -> None:
+async def run_single(_state: None=None) -> None:
     """Run through the pocketwalk actions once."""
     await signals.call(checkers.run_until_all_pass)
     commit_result = await signals.call(commit.run)

@@ -44,11 +44,17 @@ def watch_until_change() -> WatchResult:
 
 
 # [ Internals ]
-def _run_single(state: typing.Any) -> typing.Any:
+async def _run_single(state: typing.Any) -> typing.Any:
     """Run a single iteration of checker actions."""
-    raise NotImplementedError(state)  # pragma: no cover
+    await signals.call(_get_checker_list)
+    return state
 
 
 def _not_all_passing(state: typing.Any) -> bool:
     """Test whether or not to continue the loop."""
     raise NotImplementedError(state)  # pragma: no cover
+
+
+def _get_checker_list() -> list:
+    """Return the checker list."""
+    raise NotImplementedError()  # pragma: no cover

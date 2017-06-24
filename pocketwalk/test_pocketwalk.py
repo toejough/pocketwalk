@@ -95,6 +95,33 @@ class CheckerLoop:
         utaw.assertIsNone(self._coro.returned)
 
 
+class CheckerRunSingle:
+    """Run the checker steps a single time."""
+
+    def __init__(self) -> None:
+        """Init state."""
+        self._coro = testing.TestWrapper(checkers._run_single(None))
+
+    def gets_checker_list_and_receives_list(self) -> None:
+        """Verify coro runs checkers and mock the given result."""
+        testing.assertEqual(self._coro.signal, signals.Call(checkers._get_checker_list))
+        self._coro.receives_value([])
+
+    # def runs_commit_and_gets(self, result: commit.Result) -> None:
+    #     """Verify coro runs commit and mock the given result."""
+    #     testing.assertEqual(self._coro.signal, signals.Call(commit.run))
+    #     self._coro.receives_value(result)
+
+    # def runs_checker_watchers_until_change(self) -> None:
+    #     """Verify coro runs checker watchers and mock the given result."""
+    #     testing.assertEqual(self._coro.signal, signals.Call(checkers.watch_until_change))
+    #     self._coro.receives_value(None)
+
+    # def returns_none(self) -> None:
+    #     """Verify coro returns None."""
+    #     utaw.assertIsNone(self._coro.returned)
+
+
 # [ Loop Tests ]
 def test_loop() -> None:
     """
@@ -126,12 +153,17 @@ def test_run_single_change_during_commit() -> None:
 
 
 # [ Checkers ]
-def test_run_checkers() -> None:
+def test_checker_loop() -> None:
     """Test the run_checkers happy path."""
     checker_loop = CheckerLoop()
     checker_loop.loops_single()
     checker_loop.returns()
-    # gets checker list
+
+
+def test_checker_run_single() -> None:
+    """Test the single run for the checkers."""
+    run_single = CheckerRunSingle()
+    run_single.gets_checker_list_and_receives_list()
     # cancels removed checkers
     # cancels watchers for removed checkers
     # launches new checkers
