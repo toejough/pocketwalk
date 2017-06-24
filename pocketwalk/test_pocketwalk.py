@@ -114,7 +114,12 @@ class CheckerRunSingle:
 
     def launches_new_checkers(self) -> None:
         """Verify coro launches new checkers and mock the given result."""
-        testing.assertEqual(self._coro.signal, signals.Call(checkers._launches_new_checkers))
+        testing.assertEqual(self._coro.signal, signals.Call(checkers._launch_new_checkers))
+        self._coro.receives_value(None)
+
+    def relaunches_changed_checkers(self) -> None:
+        """Verify coro launches new checkers and mock the given result."""
+        testing.assertEqual(self._coro.signal, signals.Call(checkers._relaunch_changed_checkers))
         self._coro.receives_value(None)
 
     # def returns_none(self) -> None:
@@ -166,7 +171,7 @@ def test_checker_run_single() -> None:
     run_single.gets_checker_list_and_receives_list()
     run_single.cancels_removed_checkers()
     run_single.launches_new_checkers()
-    # run_single.relaunches_changed_checkers()
+    run_single.relaunches_changed_checkers()
     # run_single.launches_watchers_for_completed_checkers()
     # run_single.launch_watcher_for_checker_list()
     # run_single.wait_for_any_future()
