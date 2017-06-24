@@ -166,10 +166,12 @@ def test_checker_run_single() -> None:
     run_single.gets_checker_list_and_receives_list()
     run_single.cancels_removed_checkers()
     run_single.cancels_watchers_for_removed_checkers()
-    # launches new checkers
-    # launches watchers for new checkers
-    # launches watcher for checker list
-    # waits for any
+    # run_single.launches_new_checkers()
+    # run_single.launches_watchers_for_new_checkers()
+    # run_single.relaunches_changed_checkers()
+    # run_single.relaunches_watchers_for_changed_checkers()
+    # run_single.launch_watcher_for_checker_list()
+    # run_single.wait_for_any_future()
 
     # iterate on (checker list update, changes detected, checker failure, checker PASS
     # cancel all watchers and return when all checkers have passed
