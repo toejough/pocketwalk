@@ -17,6 +17,7 @@ class Result(enum.Enum):
     """Result enums."""
 
     RUNNING = enum.auto()
+    ALL_PASSING = enum.auto()
 
 
 class WatchResult(enum.Enum):
@@ -45,7 +46,10 @@ async def _run_single(_state: typing.Any) -> typing.Any:
     await signals.call(_launch_watchers_for_completed_checkers)
     await signals.call(_launch_watcher_for_checker_list)
     await signals.call(_wait_for_any_future)
-    return await signals.call(_analyze_checker_state)
+    checker_state = await signals.call(_analyze_checker_state)
+    if checker_state is Result.ALL_PASSING:
+        await signals.call(_cancel_all_futures)
+    return checker_state
 
 
 def _not_all_passing(state: typing.Any) -> bool:
@@ -90,4 +94,9 @@ def _analyze_checker_state() -> None:
 
 def _wait_for_any_future() -> None:
     """Wait for any future."""
+    raise NotImplementedError()  # pragma: no cover
+
+
+def _cancel_all_futures() -> None:
+    """Cancel all futures."""
     raise NotImplementedError()  # pragma: no cover
