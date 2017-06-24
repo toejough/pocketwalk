@@ -5,7 +5,10 @@
 
 
 # [ Imports ]
+# [ -Python
+import typing
 # [ -Third Party ]
+import dado
 from runaway import extras, signals, testing
 import utaw
 # [ -Project ]
@@ -152,6 +155,22 @@ class CheckerRunSingle:
         testing.assertEqual(self._coro.returned, status)
 
 
+class CheckerRunSinglePredicate:
+    """Checker loop predicate test steps."""
+
+    def __init__(self, status: checkers.Result) -> None:
+        """Init state."""
+        async def wrapped(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+            """Run function as coro."""
+            return checkers._not_all_passing(*args, **kwargs)
+
+        self._coro = testing.TestWrapper(wrapped(status))
+
+    def returns(self, result: bool) -> None:
+        """Verify the exit call and return."""
+        utaw.assertIs(self._coro.returned, result)
+
+
 # [ Loop Tests ]
 def test_loop() -> None:
     """
@@ -217,3 +236,13 @@ def test_checker_run_single_all_passing() -> None:
     run_single.analyzes_checker_state_and_gets(checkers.Result.ALL_PASSING)
     run_single.cancels_all_futures()
     run_single.returns(checkers.Result.ALL_PASSING)
+
+
+@dado.data_driven(['status', 'result'], {
+    'all_passing': [checkers.Result.ALL_PASSING, False],
+    'running': [checkers.Result.RUNNING, True],
+})
+def test_checker_run_single_predicate(status: checkers.Result, result: bool) -> None:
+    """Test the single run predicate."""
+    predicate = CheckerRunSinglePredicate(status)
+    predicate.returns(result)

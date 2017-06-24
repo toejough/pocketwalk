@@ -54,7 +54,7 @@ async def _run_single(_state: typing.Any) -> typing.Any:
 
 def _not_all_passing(state: typing.Any) -> bool:
     """Test whether or not to continue the loop."""
-    raise NotImplementedError(state)  # pragma: no cover
+    return state is not Result.ALL_PASSING
 
 
 def _get_checker_list() -> list:
