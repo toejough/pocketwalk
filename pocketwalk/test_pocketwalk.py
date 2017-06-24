@@ -5,14 +5,17 @@
 
 
 # [ Imports ]
-# [ -Python ]
-import types
 # [ -Third Party ]
 from runaway import extras, signals, testing
 import utaw
 # [ -Project ]
 import pocketwalk
 from pocketwalk.core import checkers, commit
+
+
+# [ Static Checking ]
+# this is a test module - we're doing protected accesses.
+# pylint: disable=protected-access
 
 
 # [ Test Objects ]
@@ -22,7 +25,6 @@ class Loop:
     def __init__(self) -> None:
         """Init state."""
         self._coro = testing.TestWrapper(pocketwalk.loop())
-        self._state = types.SimpleNamespace()
 
     def loops_single_and_gets_none(self) -> None:
         """Verify the loop call and return."""
@@ -47,7 +49,6 @@ class RunSingle:
     def __init__(self) -> None:
         """Init state."""
         self._coro = testing.TestWrapper(pocketwalk.run_single())
-        self._state = types.SimpleNamespace()
 
     def runs_checkers_until_all_pass(self) -> None:
         """Verify coro runs checkers and mock the given result."""
@@ -66,6 +67,31 @@ class RunSingle:
 
     def returns_none(self) -> None:
         """Verify coro returns None."""
+        utaw.assertIsNone(self._coro.returned)
+
+
+class CheckerLoop:
+    """Checker loop test steps."""
+
+    def __init__(self) -> None:
+        """Init state."""
+        self._coro = testing.TestWrapper(checkers.run_until_all_pass())
+
+    def loops_single(self) -> None:
+        """Verify the loop call and return."""
+        testing.assertEqual(
+            self._coro.signal,
+            signals.Call(
+                extras.do_while,
+                checkers._not_all_passing,
+                checkers._run_single,
+                None,
+            ),
+        )
+        self._coro.receives_value(None)
+
+    def returns(self) -> None:
+        """Verify the exit call and return."""
         utaw.assertIsNone(self._coro.returned)
 
 
@@ -97,3 +123,21 @@ def test_run_single_change_during_commit() -> None:
     run_single.runs_checkers_until_all_pass()
     run_single.runs_commit_and_gets(commit.Result.CHANGES_DETECTED)
     run_single.returns_none()
+
+
+# [ Checkers ]
+def test_run_checkers() -> None:
+    """Test the run_checkers happy path."""
+    checker_loop = CheckerLoop()
+    checker_loop.loops_single()
+    checker_loop.returns()
+    # gets checker list
+    # cancels removed checkers
+    # cancels watchers for removed checkers
+    # launches new checkers
+    # launches watchers for new checkers
+    # launches watcher for checker list
+    # waits for any
+
+    # iterate on (checker list update, changes detected, checker failure, checker PASS
+    # cancel all watchers and return when all checkers have passed

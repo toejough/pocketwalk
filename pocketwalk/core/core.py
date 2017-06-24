@@ -13,19 +13,7 @@ from pocketwalk.core import checkers, commit
 
 # [ API ]
 async def loop() -> None:
-    """
-    Loop over the pocketwalk core actions.
-
-    ---
-    Return when the passed in predicate indicates.
-    ---
-
-    args:
-        - predicate: a predicate function taking one arbitrary state object (the output of `run_single`),
-          and returning `True` if the loop should continue running and `False` if it should stop.
-
-    returns: the final arbitrary state.
-    """
+    """Loop over the pocketwalk core actions."""
     await signals.call(extras.run_forever, run_single, None)
 
 

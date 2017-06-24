@@ -7,8 +7,9 @@
 # [ Import ]
 # [ -Python ]
 import enum
+import typing
 # [ -Third Party ]
-# from runaway import extras, signals
+from runaway import extras, signals
 # [ -Project ]
 # from pocketwalk.core.types_ import Result
 
@@ -27,9 +28,9 @@ class WatchResult(enum.Enum):
     CHANGED = enum.auto()
 
 
-def run_until_all_pass() -> Result:
+async def run_until_all_pass() -> None:
     """Run the checkers until they all pass."""
-    raise NotImplementedError  # pragma: no cover
+    await signals.call(extras.do_while, _not_all_passing, _run_single, None)
 
 
 def watch_until_change() -> WatchResult:
@@ -37,23 +38,17 @@ def watch_until_change() -> WatchResult:
     raise NotImplementedError  # pragma: no cover
 
 
-# async def loop() -> Result:
-#     """Run the static checkers concurrently."""
-#     # mypy says this returns any...technically true?
-#     return await signals.call(extras.do_while, _loop_predicate, _run_single, None)  # type: ignore
-
-
 # def watch() -> WatchResult:
 #     """Watch the static checker files concurrently."""
 #     return WatchResult.CHANGED
 
 
-# # [ Internals ]
-# def _run_single() -> Result:
-#     """Run a single iteration of checker actions."""
-#     raise NotImplementedError
+# [ Internals ]
+def _run_single(state: typing.Any) -> typing.Any:
+    """Run a single iteration of checker actions."""
+    raise NotImplementedError(state)  # pragma: no cover
 
 
-# def _loop_predicate() -> bool:
-#     """Test whether or not to continue the loop."""
-#     raise NotImplementedError
+def _not_all_passing(state: typing.Any) -> bool:
+    """Test whether or not to continue the loop."""
+    raise NotImplementedError(state)  # pragma: no cover
