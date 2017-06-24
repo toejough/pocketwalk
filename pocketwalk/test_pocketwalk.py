@@ -132,6 +132,11 @@ class CheckerRunSingle:
         testing.assertEqual(self._coro.signal, signals.Call(checkers._launch_watcher_for_checker_list))
         self._coro.receives_value(None)
 
+    def waits_for_any_future(self) -> None:
+        """Verify coro waits for any future and mock the given result."""
+        testing.assertEqual(self._coro.signal, signals.Call(checkers._wait_for_any_future))
+        self._coro.receives_value(None)
+
     # def returns_none(self) -> None:
     #     """Verify coro returns None."""
     #     utaw.assertIsNone(self._coro.returned)
@@ -184,7 +189,7 @@ def test_checker_run_single() -> None:
     run_single.relaunches_changed_checkers()
     run_single.launches_watchers_for_completed_checkers()
     run_single.launches_watcher_for_checker_list()
-    # run_single.wait_for_any_future()
+    run_single.waits_for_any_future()
 
     # iterate on (checker list update, changes detected, checker failure, checker PASS
     # cancel all watchers and return when all checkers have passed
