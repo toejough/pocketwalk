@@ -9,6 +9,8 @@ ignore =
     # forget inline quotes, because apostrophes are a thing in user strings, but
     # I want single quotes in non-user strings (like dictionary keys)
     Q000,
+    # Empty line after final docstring section... seems like it confuses docs/code.
+    D413,
 
 # ignore init files
 exclude = __init__.py

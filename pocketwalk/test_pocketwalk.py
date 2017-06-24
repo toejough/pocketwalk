@@ -14,6 +14,7 @@ from runaway import extras, signals, testing
 import utaw
 # [ -Project ]
 import pocketwalk
+from pocketwalk.core import checkers
 
 
 # [ Static Checking ]
@@ -63,9 +64,10 @@ class RunSingle:
         self._coro = testing.TestWrapper(pocketwalk.run_single())
         self._state = types.SimpleNamespace()
 
-    def raises_not_implemented_error(self) -> None:
-        """Verify function raises NotImplementedError."""
-        utaw.assertIsInstance(self._coro.error, NotImplementedError)
+    def runs_checkers_and_gets(self, result: checkers.Result) -> None:
+        """Verify coro runs checkers and mock the given result."""
+        testing.assertEqual(self._coro.signal, signals.Call(checkers.run))
+        self._coro.receives_value(result)
 
 
 # class LoopReturn:
@@ -152,14 +154,13 @@ def test_loop() -> None:
     the_loop.returns_none()
 
 
-# [ NotImplementedError Tests ]
 def test_run_single() -> None:
     """Test that run_single raises NotImplementedError."""
     run_single = RunSingle()
     run_single.runs_checkers_and_gets(checkers.Result.PASS)
-    run_single.runs_commit_and_gets(commit.Result.PASS)
-    run_single.runs_checker_watchers_and_gets(checkers.WatchResult.CHANGED)
-    run_single.returns(checkers.WatchResult.CHANGED)
+    # run_single.runs_commit_and_gets(commit.Result.PASS)
+    # run_single.runs_checker_watchers_and_gets(checkers.WatchResult.CHANGED)
+    # run_single.returns(checkers.WatchResult.CHANGED)
 
 
 # # [ Single Tests ]

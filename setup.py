@@ -1,3 +1,6 @@
+# coding: utf-8
+
+
 """Setup for pocketwalk."""
 
 
@@ -47,9 +50,9 @@ setup(
             'flake8-mutable', 'mypy',
         ],
     },
-    entry_points={
-        'console_scripts': [
-            'pocketwalk=pocketwalk:main',
-        ],
-    }
+    # entry_points={
+    #     'console_scripts': [
+    #         'pocketwalk=pocketwalk:main',
+    #     ],
+    # },
 )

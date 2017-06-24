@@ -6,21 +6,24 @@
 
 # [ Import ]
 # [ -Python ]
-# import enum
+import enum
 # [ -Third Party ]
 # from runaway import extras, signals
 # [ -Project ]
 # from pocketwalk.core.types_ import Result
 
 
-# [ Internals ]
-# class WatchResult(enum.Enum):
-#     """WatchResult enums."""
-
-#     CHANGED = enum.auto()
-
-
 # [ API ]
+class Result(enum.Enum):
+    """Result enums."""
+
+    PASS = enum.auto()
+    FAIL = enum.auto()
+
+
+def run() -> Result:
+    """Run the checkers."""
+    raise NotImplementedError  # pragma: no cover
 # async def loop() -> Result:
 #     """Run the static checkers concurrently."""
 #     # mypy says this returns any...technically true?

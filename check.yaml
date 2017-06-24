@@ -1,5 +1,5 @@
 paths:
-    - pocketwalk/**/*.py
+    - 'pocketwalk/**/*.py'
 
 checks:
     - [symilar, --ignore-imports]

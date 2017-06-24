@@ -10,7 +10,7 @@ import typing
 # [ -Third Party ]
 from runaway import extras, signals
 # [ -Project ]
-from pocketwalk.core import types_
+from pocketwalk.core import checkers
 
 
 # [ Static Checking ]
@@ -19,7 +19,7 @@ from pocketwalk.core import types_
 
 
 # [ API ]
-async def loop(predicate: typing.Callable[[typing.Any], bool]) -> types_.Result:
+async def loop(predicate: typing.Callable[[typing.Any], bool]) -> checkers.Result:
     """
     Loop over the pocketwalk core actions.
 
@@ -37,9 +37,9 @@ async def loop(predicate: typing.Callable[[typing.Any], bool]) -> types_.Result:
     return await signals.call(extras.do_while, predicate, run_single, None)  # type: ignore
 
 
-async def run_single() -> typing.Any:
+async def run_single() -> checkers.Result:
     """Run through the pocketwalk actions once."""
-    raise NotImplementedError
+    return typing.cast(checkers.Result, await signals.call(checkers.run))
     # check_result = await signals.call(run_checks)
     # if check_result is checkers.Result.PASS:
     #     commit_result = await signals.call(_do_watched_commit)
