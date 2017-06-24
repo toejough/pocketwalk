@@ -18,8 +18,7 @@ from runaway import extras, signals
 class Result(enum.Enum):
     """Result enums."""
 
-    PASS = enum.auto()
-    FAIL = enum.auto()
+    RUNNING = enum.auto()
 
 
 class WatchResult(enum.Enum):
@@ -44,7 +43,7 @@ def watch_until_change() -> WatchResult:
 
 
 # [ Internals ]
-async def _run_single(state: typing.Any) -> typing.Any:
+async def _run_single(_state: typing.Any) -> typing.Any:
     """Run a single iteration of checker actions."""
     await signals.call(_get_checker_list)
     await signals.call(_cancel_removed_checkers)
@@ -53,7 +52,7 @@ async def _run_single(state: typing.Any) -> typing.Any:
     await signals.call(_launch_watchers_for_completed_checkers)
     await signals.call(_launch_watcher_for_checker_list)
     await signals.call(_wait_for_any_future)
-    return state
+    return Result.RUNNING
 
 
 def _not_all_passing(state: typing.Any) -> bool:
