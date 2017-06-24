@@ -35,4 +35,5 @@ async def run_single() -> checkers.Result:
     """Run through the pocketwalk actions once."""
     checker_result = typing.cast(checkers.Result, await signals.call(checkers.run))
     typing.cast(commit.Result, await signals.call(commit.run))
+    typing.cast(checkers.WatchResult, await signals.call(checkers.watch))
     return checker_result

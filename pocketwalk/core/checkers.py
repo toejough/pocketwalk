@@ -21,9 +21,22 @@ class Result(enum.Enum):
     FAIL = enum.auto()
 
 
+class WatchResult(enum.Enum):
+    """WatchResult enums."""
+
+    CHANGED = enum.auto()
+
+
 def run() -> Result:
     """Run the checkers."""
     raise NotImplementedError  # pragma: no cover
+
+
+def watch() -> WatchResult:
+    """Run the watchers."""
+    raise NotImplementedError  # pragma: no cover
+
+
 # async def loop() -> Result:
 #     """Run the static checkers concurrently."""
 #     # mypy says this returns any...technically true?
