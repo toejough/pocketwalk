@@ -53,24 +53,24 @@ class RunSingle:
         self._coro = testing.TestWrapper(pocketwalk.run_single())
         self._state = types.SimpleNamespace()
 
-    def runs_checkers_and_gets(self, result: checkers.Result) -> None:
+    def runs_checkers(self) -> None:
         """Verify coro runs checkers and mock the given result."""
         testing.assertEqual(self._coro.signal, signals.Call(checkers.run))
-        self._coro.receives_value(result)
+        self._coro.receives_value(None)
 
-    def runs_commit_and_gets(self, result: commit.Result) -> None:
+    def runs_commit(self) -> None:
         """Verify coro runs commit and mock the given result."""
         testing.assertEqual(self._coro.signal, signals.Call(commit.run))
-        self._coro.receives_value(result)
+        self._coro.receives_value(None)
 
-    def runs_checker_watchers_and_gets(self, result: checkers.WatchResult) -> None:
+    def runs_checker_watchers(self) -> None:
         """Verify coro runs checker watchers and mock the given result."""
         testing.assertEqual(self._coro.signal, signals.Call(checkers.watch))
-        self._coro.receives_value(result)
+        self._coro.receives_value(None)
 
-    def returns(self, result: checkers.WatchResult) -> None:
-        """Verify coro returns the passed in value."""
-        testing.assertEqual(self._coro.returned, result)
+    def returns_none(self) -> None:
+        """Verify coro returns None."""
+        utaw.assertIsNone(self._coro.returned)
 
 
 # [ Loop Tests ]
@@ -90,7 +90,7 @@ def test_loop() -> None:
 def test_run_single_happy_path() -> None:
     """Test the run_single happy path."""
     run_single = RunSingle()
-    run_single.runs_checkers_and_gets(checkers.Result.PASS)
-    run_single.runs_commit_and_gets(commit.Result.PASS)
-    run_single.runs_checker_watchers_and_gets(checkers.WatchResult.CHANGED)
-    run_single.returns(checkers.WatchResult.CHANGED)
+    run_single.runs_checkers()
+    run_single.runs_commit()
+    run_single.runs_checker_watchers()
+    run_single.returns_none()
