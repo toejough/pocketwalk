@@ -14,7 +14,7 @@ from runaway import extras, signals, testing
 import utaw
 # [ -Project ]
 import pocketwalk
-from pocketwalk.core import checkers
+from pocketwalk.core import checkers, commit
 
 
 # [ Static Checking ]
@@ -67,6 +67,11 @@ class RunSingle:
     def runs_checkers_and_gets(self, result: checkers.Result) -> None:
         """Verify coro runs checkers and mock the given result."""
         testing.assertEqual(self._coro.signal, signals.Call(checkers.run))
+        self._coro.receives_value(result)
+
+    def runs_commit_and_gets(self, result: commit.Result) -> None:
+        """Verify coro runs commit and mock the given result."""
+        testing.assertEqual(self._coro.signal, signals.Call(commit.run))
         self._coro.receives_value(result)
 
 
@@ -154,11 +159,11 @@ def test_loop() -> None:
     the_loop.returns_none()
 
 
-def test_run_single() -> None:
-    """Test that run_single raises NotImplementedError."""
+def test_run_single_happy_path() -> None:
+    """Test the run_single happy path."""
     run_single = RunSingle()
     run_single.runs_checkers_and_gets(checkers.Result.PASS)
-    # run_single.runs_commit_and_gets(commit.Result.PASS)
+    run_single.runs_commit_and_gets(commit.Result.PASS)
     # run_single.runs_checker_watchers_and_gets(checkers.WatchResult.CHANGED)
     # run_single.returns(checkers.WatchResult.CHANGED)
 
