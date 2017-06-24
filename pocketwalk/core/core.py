@@ -31,9 +31,8 @@ async def loop(predicate: typing.Callable[[typing.Any], bool]) -> checkers.Resul
     return typing.cast(checkers.Result, await signals.call(extras.do_while, predicate, run_single, None))
 
 
-async def run_single() -> checkers.Result:
+async def run_single() -> checkers.WatchResult:
     """Run through the pocketwalk actions once."""
-    checker_result = typing.cast(checkers.Result, await signals.call(checkers.run))
+    typing.cast(checkers.Result, await signals.call(checkers.run))
     typing.cast(commit.Result, await signals.call(commit.run))
-    typing.cast(checkers.WatchResult, await signals.call(checkers.watch))
-    return checker_result
+    return typing.cast(checkers.WatchResult, await signals.call(checkers.watch))
