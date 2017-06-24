@@ -47,6 +47,7 @@ def watch_until_change() -> WatchResult:
 async def _run_single(state: typing.Any) -> typing.Any:
     """Run a single iteration of checker actions."""
     await signals.call(_get_checker_list)
+    await signals.call(_cancel_removed_checkers)
     return state
 
 
@@ -57,4 +58,9 @@ def _not_all_passing(state: typing.Any) -> bool:
 
 def _get_checker_list() -> list:
     """Return the checker list."""
+    raise NotImplementedError()  # pragma: no cover
+
+
+def _cancel_removed_checkers() -> None:
+    """Cancel the removed checkers."""
     raise NotImplementedError()  # pragma: no cover
