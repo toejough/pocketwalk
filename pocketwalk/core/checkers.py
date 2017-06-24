@@ -27,13 +27,13 @@ class WatchResult(enum.Enum):
     CHANGED = enum.auto()
 
 
-def run() -> Result:
-    """Run the checkers."""
+def run_until_all_pass() -> Result:
+    """Run the checkers until they all pass."""
     raise NotImplementedError  # pragma: no cover
 
 
-def watch() -> WatchResult:
-    """Run the watchers."""
+def watch_until_change() -> WatchResult:
+    """Run the watchers until a change."""
     raise NotImplementedError  # pragma: no cover
 
 

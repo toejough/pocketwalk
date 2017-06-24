@@ -53,19 +53,19 @@ class RunSingle:
         self._coro = testing.TestWrapper(pocketwalk.run_single())
         self._state = types.SimpleNamespace()
 
-    def runs_checkers(self) -> None:
+    def runs_checkers_until_all_pass(self) -> None:
         """Verify coro runs checkers and mock the given result."""
-        testing.assertEqual(self._coro.signal, signals.Call(checkers.run))
+        testing.assertEqual(self._coro.signal, signals.Call(checkers.run_until_all_pass))
         self._coro.receives_value(None)
 
-    def runs_commit(self) -> None:
+    def runs_commit_and_gets(self, result: commit.Result) -> None:
         """Verify coro runs commit and mock the given result."""
         testing.assertEqual(self._coro.signal, signals.Call(commit.run))
-        self._coro.receives_value(None)
+        self._coro.receives_value(result)
 
-    def runs_checker_watchers(self) -> None:
+    def runs_checker_watchers_until_change(self) -> None:
         """Verify coro runs checker watchers and mock the given result."""
-        testing.assertEqual(self._coro.signal, signals.Call(checkers.watch))
+        testing.assertEqual(self._coro.signal, signals.Call(checkers.watch_until_change))
         self._coro.receives_value(None)
 
     def returns_none(self) -> None:
@@ -90,7 +90,7 @@ def test_loop() -> None:
 def test_run_single_happy_path() -> None:
     """Test the run_single happy path."""
     run_single = RunSingle()
-    run_single.runs_checkers()
-    run_single.runs_commit()
-    run_single.runs_checker_watchers()
+    run_single.runs_checkers_until_all_pass()
+    run_single.runs_commit_and_gets(commit.Result.COMMITTED)
+    run_single.runs_checker_watchers_until_change()
     run_single.returns_none()

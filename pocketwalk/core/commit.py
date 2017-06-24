@@ -12,8 +12,7 @@ import enum
 class Result(enum.Enum):
     """Result enums."""
 
-    PASS = enum.auto()
-    FAIL = enum.auto()
+    COMMITTED = enum.auto()
 
 
 def run() -> Result:
