@@ -26,7 +26,7 @@ class Loop:
         """Init state."""
         self._coro = testing.TestWrapper(pocketwalk.loop())
 
-    def loops_single_and_gets_none(self) -> None:
+    def loops_single(self) -> None:
         """Verify the loop call and return."""
         testing.assertEqual(
             self._coro.signal,
@@ -38,7 +38,7 @@ class Loop:
         )
         self._coro.receives_value(None)
 
-    def returns_none(self) -> None:
+    def returns(self) -> None:
         """Verify the exit call and return."""
         utaw.assertIsNone(self._coro.returned)
 
@@ -104,8 +104,8 @@ def test_loop() -> None:
     return None.
     """
     the_loop = Loop()
-    the_loop.loops_single_and_gets_none()
-    the_loop.returns_none()
+    the_loop.loops_single()
+    the_loop.returns()
 
 
 def test_run_single_happy_path() -> None:
