@@ -156,7 +156,10 @@ def test_loop() -> None:
 def test_run_single() -> None:
     """Test that run_single raises NotImplementedError."""
     run_single = RunSingle()
-    run_single.raises_not_implemented_error()
+    run_single.runs_checkers_and_gets(checkers.Result.PASS)
+    run_single.runs_commit_and_gets(commit.Result.PASS)
+    run_single.runs_checker_watchers_and_gets(checkers.WatchResult.CHANGED)
+    run_single.returns(checkers.WatchResult.CHANGED)
 
 
 # # [ Single Tests ]
