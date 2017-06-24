@@ -13,6 +13,7 @@ class Result(enum.Enum):
     """Result enums."""
 
     COMMITTED = enum.auto()
+    CHANGES_DETECTED = enum.auto()
 
 
 def run() -> Result:

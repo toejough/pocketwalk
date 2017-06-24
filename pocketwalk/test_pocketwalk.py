@@ -94,3 +94,11 @@ def test_run_single_happy_path() -> None:
     run_single.runs_commit_and_gets(commit.Result.COMMITTED)
     run_single.runs_checker_watchers_until_change()
     run_single.returns_none()
+
+
+def test_run_single_change_during_commit() -> None:
+    """Test the run_single path when there is a change during a commit."""
+    run_single = RunSingle()
+    run_single.runs_checkers_until_all_pass()
+    run_single.runs_commit_and_gets(commit.Result.CHANGES_DETECTED)
+    run_single.returns_none()
