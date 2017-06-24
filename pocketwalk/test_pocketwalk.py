@@ -7,9 +7,7 @@
 # [ Imports ]
 # [ -Python ]
 import types
-import typing
 # [ -Third Party ]
-# from dado import data_driven
 from runaway import extras, signals, testing
 import utaw
 # [ -Project ]
@@ -21,10 +19,9 @@ from pocketwalk.core import checkers, commit
 class Loop:
     """Loop test steps."""
 
-    def __init__(self, loop_predicate: typing.Callable[[typing.Any], bool]) -> None:
+    def __init__(self) -> None:
         """Init state."""
-        self._loop_predicate = loop_predicate
-        self._coro = testing.TestWrapper(pocketwalk.loop(self._loop_predicate))
+        self._coro = testing.TestWrapper(pocketwalk.loop())
         self._state = types.SimpleNamespace()
 
     def loops_single_and_gets_none(self) -> None:
@@ -32,8 +29,7 @@ class Loop:
         testing.assertEqual(
             self._coro.signal,
             signals.Call(
-                extras.do_while,
-                self._loop_predicate,
+                extras.run_forever,
                 pocketwalk.run_single,
                 None,
             ),
@@ -81,8 +77,7 @@ def test_loop() -> None:
     When called, the main loop should run, and when the passed in predicate evaluates to False,
     return None.
     """
-    # coverage.py flags this as a partial branch...
-    the_loop = Loop(lambda state: False)  # pragma: no branch
+    the_loop = Loop()
     the_loop.loops_single_and_gets_none()
     the_loop.returns_none()
 

@@ -5,8 +5,6 @@
 
 
 # [ Imports ]
-# [ -Python ]
-import typing
 # [ -Third Party ]
 from runaway import extras, signals
 # [ -Project ]
@@ -14,7 +12,7 @@ from pocketwalk.core import checkers, commit
 
 
 # [ API ]
-async def loop(predicate: typing.Callable[[typing.Any], bool]) -> checkers.Result:
+async def loop() -> None:
     """
     Loop over the pocketwalk core actions.
 
@@ -28,7 +26,7 @@ async def loop(predicate: typing.Callable[[typing.Any], bool]) -> checkers.Resul
 
     returns: the final arbitrary state.
     """
-    return typing.cast(checkers.Result, await signals.call(extras.do_while, predicate, run_single, None))
+    await signals.call(extras.run_forever, run_single, None)
 
 
 async def run_single() -> None:
