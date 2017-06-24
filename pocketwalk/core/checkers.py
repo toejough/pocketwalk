@@ -49,6 +49,7 @@ async def _run_single(state: typing.Any) -> typing.Any:
     await signals.call(_get_checker_list)
     await signals.call(_cancel_removed_checkers)
     await signals.call(_cancel_watchers_for_removed_checkers)
+    await signals.call(_launches_new_checkers)
     return state
 
 
@@ -69,4 +70,9 @@ def _cancel_removed_checkers() -> None:
 
 def _cancel_watchers_for_removed_checkers() -> None:
     """Cancel watchers for removed checkers."""
+    raise NotImplementedError()  # pragma: no cover
+
+
+def _launches_new_checkers() -> None:
+    """Launch new checkers."""
     raise NotImplementedError()  # pragma: no cover
