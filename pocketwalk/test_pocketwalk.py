@@ -21,6 +21,21 @@ from pocketwalk.core import checkers, commit
 # pylint: disable=protected-access
 
 
+# [ Core Data Models ]
+# Checker activity states: RUNNING|INACTIVE
+# Checker watcher activity states: WATCHING|INACTIVE
+# Checker result states: FAILED|PASSED|NOT_RUN
+# Checker watcher result states: NOT_RUN|CHANGED
+# Commit activity states: RUNNING|INACTIVE
+# Commit result states: NOT_RUN|PASSED|FAILED
+# Checker parameters: [name, run_check_func(removed, added, changed): checker result]
+# Checker watcher parameters: [name, watch_func(): removed, added, changed]
+# Commit parameters: [name, commit_func(removed, added, changed): commit result]
+# Checker list watcher activity states: WATCHING|INACTIVE
+# Checker list watcher result states: NOT_RUN|CHANGED
+# Checker list watcher parameters: [name, watch_func(): removed, added, changed]
+
+
 # [ Test Objects ]
 class Loop:
     """Loop test steps."""
@@ -171,6 +186,32 @@ class CheckerRunSinglePredicate:
         utaw.assertIs(self._coro.returned, result)
 
 
+class CheckerRemoverLoop:
+    """Checker remover loop test steps."""
+
+    def __init__(self, checkers_to_cancel: list) -> None:
+        """Init state."""
+        self._checkers_to_cancel = checkers_to_cancel
+        self._coro = testing.TestWrapper(checkers._cancel_removed_checkers(self._checkers_to_cancel))
+
+    def loops_single(self) -> None:
+        """Verify the loop call and return."""
+        testing.assertEqual(
+            self._coro.signal,
+            signals.Call(
+                extras.do_while,
+                checkers._checkers_to_cancel,
+                checkers._cancel_single,
+                self._checkers_to_cancel,
+            ),
+        )
+        self._coro.receives_value(None)
+
+    def returns(self) -> None:
+        """Verify the exit call and return."""
+        utaw.assertIsNone(self._coro.returned)
+
+
 # [ Loop Tests ]
 def test_loop() -> None:
     """
@@ -201,7 +242,7 @@ def test_run_single_change_during_commit() -> None:
     run_single.returns_none()
 
 
-# [ Checkers ]
+# [ Checker Loop ]
 def test_checker_loop() -> None:
     """Test the run_checkers happy path."""
     checker_loop = CheckerLoop()
@@ -209,6 +250,7 @@ def test_checker_loop() -> None:
     checker_loop.returns()
 
 
+# [ Checker Single Run ]
 def test_checker_run_single_running() -> None:
     """Test the single run for the checkers while checkers are running."""
     run_single = CheckerRunSingle()
@@ -238,6 +280,7 @@ def test_checker_run_single_all_passing() -> None:
     run_single.returns(checkers.Result.ALL_PASSING)
 
 
+# [ Checker Predicate ]
 @dado.data_driven(['status', 'result'], {
     'all_passing': [checkers.Result.ALL_PASSING, False],
     'running': [checkers.Result.RUNNING, True],
@@ -246,3 +289,15 @@ def test_checker_run_single_predicate(status: checkers.Result, result: bool) -> 
     """Test the single run predicate."""
     predicate = CheckerRunSinglePredicate(status)
     predicate.returns(result)
+
+
+# [ Cancel Removed Checkers ]
+def test_remove_checker_loop_no_checkers() -> None:
+    """Test the remove checker loop when there are no checkers to remove."""
+    checker_remover_loop = CheckerRemoverLoop([])
+    checker_remover_loop.loops_single()
+    checker_remover_loop.returns()
+    # get removed checkers
+    # if no removed checkers, return
+    # loop remove_single
+    # predicate -> any left

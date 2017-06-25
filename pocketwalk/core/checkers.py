@@ -62,9 +62,14 @@ def _get_checker_list() -> list:
     raise NotImplementedError()  # pragma: no cover
 
 
-def _cancel_removed_checkers() -> None:
+async def _cancel_removed_checkers(removed_checkers: list) -> None:
     """Cancel the removed checkers."""
-    raise NotImplementedError()  # pragma: no cover
+    await signals.call(extras.do_while, _checkers_to_cancel, _cancel_single, removed_checkers)
+
+
+def _checkers_to_cancel(state: list) -> bool:
+    """Test whether or not to continue the loop."""
+    raise NotImplementedError(state)  # pragma: no cover
 
 
 def _launch_new_checkers() -> None:
@@ -99,4 +104,9 @@ def _wait_for_any_future() -> None:
 
 def _cancel_all_futures() -> None:
     """Cancel all futures."""
+    raise NotImplementedError()  # pragma: no cover
+
+
+async def _cancel_single() -> None:
+    """Cancel a removed checker."""
     raise NotImplementedError()  # pragma: no cover
