@@ -64,6 +64,9 @@ def _get_checker_list() -> list:
 
 async def _cancel_removed_checkers(removed_checkers: list) -> None:
     """Cancel the removed checkers."""
+    # EARLY RETURN
+    if not removed_checkers:
+        return
     await signals.call(extras.do_while, _checkers_to_cancel, _cancel_single, removed_checkers)
 
 

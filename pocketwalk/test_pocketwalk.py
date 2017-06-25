@@ -295,6 +295,12 @@ def test_checker_run_single_predicate(status: checkers.Result, result: bool) -> 
 def test_remove_checker_loop_no_checkers() -> None:
     """Test the remove checker loop when there are no checkers to remove."""
     checker_remover_loop = CheckerRemoverLoop([])
+    checker_remover_loop.returns()
+
+
+def test_remove_checker_loop_checkers() -> None:
+    """Test the remove checker loop when there are no checkers to remove."""
+    checker_remover_loop = CheckerRemoverLoop(['a', 'b', 'c'])
     checker_remover_loop.loops_single()
     checker_remover_loop.returns()
     # get removed checkers
