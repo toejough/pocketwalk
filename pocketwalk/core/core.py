@@ -5,6 +5,8 @@
 
 
 # [ Imports ]
+# [ -Python ]
+import typing
 # [ -Third Party ]
 from runaway import extras, signals
 # [ -Project ]
@@ -17,10 +19,7 @@ async def loop() -> None:
     await signals.call(extras.run_forever, run_single, None)
 
 
-async def run_single(_state: None=None) -> None:
+async def run_single(_state: None=None) -> commit.Result:
     """Run through the pocketwalk actions once."""
     await signals.call(checkers.run_until_all_pass)
-    commit_result = await signals.call(commit.run)
-    if commit_result is commit.Result.CHANGES_DETECTED:
-        return
-    await signals.call(checkers.watch_until_change)
+    return typing.cast(commit.Result, await signals.call(commit.run))

@@ -80,14 +80,9 @@ class RunSingle:
         testing.assertEqual(self._coro.signal, signals.Call(commit.run))
         self._coro.receives_value(result)
 
-    def runs_checker_watchers_until_change(self) -> None:
-        """Verify coro runs checker watchers and mock the given result."""
-        testing.assertEqual(self._coro.signal, signals.Call(checkers.watch_until_change))
-        self._coro.receives_value(None)
-
-    def returns_none(self) -> None:
-        """Verify coro returns None."""
-        utaw.assertIsNone(self._coro.returned)
+    def returns(self, status: commit.Result) -> None:
+        """Verify coro returns the given status."""
+        utaw.assertIs(self._coro.returned, status)
 
 
 class CheckerLoop:
@@ -232,8 +227,7 @@ def test_run_single_happy_path() -> None:
     run_single = RunSingle()
     run_single.runs_checkers_until_all_pass()
     run_single.runs_commit_and_gets(commit.Result.COMMITTED)
-    run_single.runs_checker_watchers_until_change()
-    run_single.returns_none()
+    run_single.returns(commit.Result.COMMITTED)
 
 
 def test_run_single_change_during_commit() -> None:
@@ -241,7 +235,7 @@ def test_run_single_change_during_commit() -> None:
     run_single = RunSingle()
     run_single.runs_checkers_until_all_pass()
     run_single.runs_commit_and_gets(commit.Result.CHANGES_DETECTED)
-    run_single.returns_none()
+    run_single.returns(commit.Result.CHANGES_DETECTED)
 
 
 def test_run_single_commit_failure() -> None:
@@ -249,8 +243,7 @@ def test_run_single_commit_failure() -> None:
     run_single = RunSingle()
     run_single.runs_checkers_until_all_pass()
     run_single.runs_commit_and_gets(commit.Result.FAILED)
-    run_single.runs_checker_watchers_until_change()
-    run_single.returns_none()
+    run_single.returns(commit.Result.FAILED)
 
 
 # [ Checker Loop ]
