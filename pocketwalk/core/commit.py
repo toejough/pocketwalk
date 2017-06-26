@@ -14,6 +14,7 @@ class Result(enum.Enum):
 
     COMMITTED = enum.auto()
     CHANGES_DETECTED = enum.auto()
+    FAILED = enum.auto()
 
 
 def run() -> Result:

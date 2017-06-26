@@ -34,6 +34,8 @@ from pocketwalk.core import checkers, commit
 # Checker list watcher activity states: WATCHING|INACTIVE
 # Checker list watcher result states: NOT_RUN|CHANGED
 # Checker list watcher parameters: [name, watch_func(): removed, added, changed]
+# added/removed/changed are full pathlib path Objects
+# checkers are path objects as well.
 
 
 # [ Test Objects ]
@@ -239,6 +241,15 @@ def test_run_single_change_during_commit() -> None:
     run_single = RunSingle()
     run_single.runs_checkers_until_all_pass()
     run_single.runs_commit_and_gets(commit.Result.CHANGES_DETECTED)
+    run_single.returns_none()
+
+
+def test_run_single_commit_failure() -> None:
+    """Test the run_single path when there is failure during commit."""
+    run_single = RunSingle()
+    run_single.runs_checkers_until_all_pass()
+    run_single.runs_commit_and_gets(commit.Result.FAILED)
+    run_single.runs_checker_watchers_until_change()
     run_single.returns_none()
 
 
