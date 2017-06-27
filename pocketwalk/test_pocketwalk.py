@@ -209,6 +209,7 @@ class CheckerRemoverLoop:
         utaw.assertIsNone(self._coro.returned)
 
 
+
 # [ Loop Tests ]
 def test_loop() -> None:
     """
@@ -219,6 +220,7 @@ def test_loop() -> None:
     """
     the_loop = Loop()
     the_loop.loops_single()
+    the_loop.cancels_running_watchers()
     the_loop.returns()
 
 
