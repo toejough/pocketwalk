@@ -17,51 +17,44 @@
 
 
 # [ Expectations ]
-# checkers are configured in a single config file
+# checkers are configured in per checker config files
 # each checker has:
 #   an optional name
 #   an optional config file,
 #   a checker path
 #   a path watch list,
 #   an arg string
+# templated args:
+#   config: the checker's config file (but not the pocketwalk config for that checker)
+#   passed: paths which passed the last run
+#   failed: paths which failed the last run
+#   changed: paths which changed since the last run
+#   new: paths which haven't been run
+#   removed: paths which have been removed since the last run
+#   all: passed | failed | changed | new
 
-# all paths-to-check are registered like:
-#   active watcher
-#   affected checkers, & pass/fail/no-result state for each
+# paths used are stored in a records file
+# each path has:
+#   the path
+#   the checkers that care about it
+#   whether the last run using that file since addition/change: passed/failed/didn't-complete, per checker
 
-# all paths-to-watch are registered like:
-#   active watcher
-#   affected checkers & run-pass/run-fail/no-run state for each
+# single run:
+# if there are paths & they all pass all checkers & commit passes (if commit was necessary), then we pass
+# if there are no paths, the tool exits with that result (no paths)
+# if there are paths, but they don't pass all checkers, or the commit is necessary but doesn't pass, we wait.
+# if a stop is sent via input queue, a "stopped" result is returned
+# watchers for all are running during all checks/commits
+# when a file changes, checks for that file are restarted, and active commits are cancelled
+# when we return, all watchers are cancelled
+# commit is triggered when all paths pass & any paths are (not ignored & (changed|new|removed))
+# commits commit changes, new files, removed files
+# procedural actions and results are reported back to the caller via a timestamped queue
+# subprocess output is reported back to the caller via the same queue, line by line
+# loops until an exit condition
 
-# all checkers are registered with running/waiting status
-
-# run_once:
-# gets registered paths/watchers/checkers
-# gets configured paths/checkers
-# for each checker:
-#   if removed & running, cancel
-#   if removed, remove from paths
-#   if added, launch checker & watchers for paths
-#   if changed & running, cancel
-#   if changed update paths & run
-# for each path:
-#   if no more checkers, cancel
-#   if new, run watcher
-#   if changed since last recorded result
-# for each checker-config:
-#   if removed, cancel checker and any checker-config-unique watchers, and continue
-#   get paths to check
-#   if paths have been removed, ca
-#   get hashes of those paths
-#   get stored results for those paths for this checker-config
-#   if new paths, missing paths, or changed paths, watch all paths and run checker
-#   elif all pass, mark checker-config as passing and watch all paths
-#   else mark checker-config as failing and watch all paths
-# watch config
-# if config changes, repeat from start
-
-# - args: None
-# - returns: pocketwalk.Result
+# continuous run:
+# same, but we never return pass or no-tool, just wait for the next change.
 
 
 # [ Static Checking ]
