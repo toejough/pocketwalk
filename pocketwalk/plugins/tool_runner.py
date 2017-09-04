@@ -280,8 +280,6 @@ class ToolRunner:
             output_side, input_side = pty.openpty()
             process = subprocess.Popen(args, stdout=input_side, stderr=subprocess.STDOUT, start_new_session=True)
             await signals.sleep(1)
-            # not sure why
-            # os.close(input_side)
 
             selector = selectors.DefaultSelector()
             selector.register(output_side, selectors.EVENT_READ, self._process_output)
@@ -293,8 +291,6 @@ class ToolRunner:
                 for key, _mask in events:
                     output += key.data(output_side)
                 if process.poll() is not None:
-                    os.close(input_side)
-                    selector.close()
                     break
 
             while process.poll() is None:
@@ -307,6 +303,11 @@ class ToolRunner:
             process.terminate()
             process.kill()
             raise
+
+        finally:
+            os.close(input_side)
+            os.close(output_side)
+            selector.close()
 
 
 # [ Vulture ]

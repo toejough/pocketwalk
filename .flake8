@@ -9,6 +9,8 @@ ignore =
     # forget inline quotes, because apostrophes are a thing in user strings, but
     # I want single quotes in non-user strings (like dictionary keys)
     Q000,
+    # One liners can be lambda's.  making such a small function is dumb.
+    E731,
 
 # actively select specific rules/sets
 select =

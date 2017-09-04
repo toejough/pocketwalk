@@ -17,6 +17,17 @@ import pkg_resources
 # XXX figure out how to specify plugins & order discovered
 #     function providers deterministically.
 #     perhaps a config file with white/black lists?
+#     perhaps a conflict resolver function & state, AND
+#     require all implemented functions to be independent?  no... ugh.  ok.
+# XXX ask plugin what functions it implements - filter to only those that need plugging
+# XXX ask plugin if it thinks it should be used - pass arbitrary state & overlapping plugins
+# XXX in the case there are still multiple plugins implementing non-multi functions, run an optional
+#     conflict resolver, else raise
+# XXX pass names of multi-functions explicitly
+# XXX allow specific names to be passed in for plugging, if you don't want all funcs in a container
+#     plugged
+# XXX validate function signatures & raise an exception if the chosen plugin doesn't match.
+# XXX validate function typing & raise if the chosen plugin doesn't match.
 class Plugger:
     """Plugin management tool."""
 
