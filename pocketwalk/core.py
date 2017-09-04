@@ -102,11 +102,11 @@ class Core:
         await signals.call(self._shell.replay_previous_results_for, unreported_unchanged_tools)
 
         # starting/stopping tools
-        await signals.call(self._shell.ensure_tools_stopped, tools_with_failing_preconditions, reason="failing preconditions")
-        await signals.call(self._shell.ensure_stale_tools_stopped, tools_with_changed_contexts)
-        await signals.call(self._shell.ensure_tools_stopped, tools_with_unchanged_contexts, reason="reverted files")
-        await signals.call(self._shell.ensure_removed_tools_stopped, config)
-        await signals.call(self._shell.ensure_tools_running, tools_to_run, on_completion=self._shell.save_context)
+        await self._shell.ensure_tools_stopped(tools_with_failing_preconditions, reason="failing preconditions")
+        await self._shell.ensure_stale_tools_stopped(tools_with_changed_contexts)
+        await self._shell.ensure_tools_stopped(tools_with_unchanged_contexts, reason="reverted files")
+        await self._shell.ensure_removed_tools_stopped(config)
+        await self._shell.ensure_tools_running(tools_to_run, on_completion=self._shell.save_context)
 
         # detail - needed for vcs to determine whether to run/stop
         tool_state = await signals.call(self._shell.get_tool_state)
