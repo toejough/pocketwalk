@@ -11,6 +11,8 @@ ignore =
     Q000,
     # One liners can be lambda's.  making such a small function is dumb.
     E731,
+    T000,  # todo's ok till v1.0.0
+    I201,  # says missing newline between sections or imports?  I don't think this rule is applied like I expect.
 
 # actively select specific rules/sets
 select =

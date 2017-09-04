@@ -90,7 +90,7 @@ class ContextManager:
 
     def _get_contexts_for(self, config):
         """Get the current contexts for the given tools."""
-        contexts = dict()
+        contexts = {}
         for this_tool in config['tools']:
             target_files = config[f'{this_tool}_targets']
             trigger_files = config[f'{this_tool}_triggers']
@@ -109,7 +109,9 @@ class ContextManager:
     def _get_last_contexts_for(config):
         """Get the last contexts for the given tools."""
         tools = [t for t in config['tools'] if (pathlib.Path.cwd() / '.pocketwalk.cache' / t).with_suffix('.context').exists()]
-        loaded_contexts = {t: toml.loads((pathlib.Path.cwd() / '.pocketwalk.cache' / t).with_suffix('.context').read_text()) for t in tools}
+        loaded_contexts = {t: toml.loads(
+            (pathlib.Path.cwd() / '.pocketwalk.cache' / t).with_suffix('.context').read_text(),
+        ) for t in tools}
         for context in loaded_contexts.values():
             context['config'] = context.get('config', [])
             context['preconditions'] = context.get('preconditions', [])

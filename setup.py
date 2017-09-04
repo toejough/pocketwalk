@@ -37,7 +37,7 @@ setup(
     ],
     keywords="watch run commit",
     packages=find_packages(),
-    install_requires=['runaway', 'pytoml'],
+    install_requires=['runaway', 'pytoml', 'wrapt'],
     extras_require={
         'checkers': [
             'pylint', 'flake8', 'dodgy', 'vulture',
@@ -49,6 +49,7 @@ setup(
             'flake8-tuple', 'flake8-builtins', 'flake8-coding', 'flake8-deprecated',
             'flake8-mutable', 'mypy',
         ],
+        'testing': ['dado', 'pytest'],
     },
     entry_points={
         'console_scripts': [

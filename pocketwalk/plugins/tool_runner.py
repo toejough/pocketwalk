@@ -12,8 +12,8 @@ import pathlib
 import pty
 import selectors
 import subprocess
-from pprint import pprint
 import sys
+from pprint import pprint
 # [ -Third Party ]
 import pytoml as toml
 from runaway import signals
@@ -82,7 +82,12 @@ class ToolRunner:
                 del self._return_codes[this_tool]
             self._running_tools[this_tool] = {
                 'context': contexts_for_tools[this_tool],
-                'process future': await signals.future(self._run_tool, this_tool, context=contexts_for_tools[this_tool], on_completion=on_completion),
+                'process future': await signals.future(
+                    self._run_tool,
+                    this_tool,
+                    context=contexts_for_tools[this_tool],
+                    on_completion=on_completion,
+                ),
             }
 
         for state in self._running_tools.values():
@@ -102,7 +107,7 @@ class ToolRunner:
 
     async def filter_out_reported_tools(self, tools_with_contexts):
         """Filter out any previously reported tools."""
-        unreported_tools = dict()
+        unreported_tools = {}
         for tool, context in tools_with_contexts.items():
             reported_context = self._reported_tools.get(tool, None)
             context = context.copy()
@@ -171,8 +176,12 @@ class ToolRunner:
     def replay_previous_results_for(self, tools):
         """Replay the previous results for the given tools."""
         previous_results = {t: {
-            'output': (pathlib.Path.cwd() / '.pocketwalk.cache' / t).with_suffix('.output').read_bytes(),
-            'return code': max(toml.loads((pathlib.Path.cwd() / '.pocketwalk.cache' / t).with_suffix('.return_codes').read_text()).values())
+            'output': (
+                pathlib.Path.cwd() / '.pocketwalk.cache' / t
+            ).with_suffix('.output').read_bytes(),
+            'return code': max(toml.loads((
+                pathlib.Path.cwd() / '.pocketwalk.cache' / t
+            ).with_suffix('.return_codes').read_text()).values()),
         } for t in tools.keys()}
         return_codes = []
         for this_tool, results in previous_results.items():

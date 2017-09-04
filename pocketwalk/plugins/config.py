@@ -128,7 +128,12 @@ class Config:
             )
             parser.add_argument(
                 f'--{tool}-args',
-                help=f"Args to pass {tool}, in python string format. The template '{{target_paths}}' will get replaced at runtime with the target paths, '{{affected_paths}}' will get replaced with affected paths. [default: %(default)s]",
+                help=(
+                    f"Args to pass {tool}, in python string format." +
+                    f"  The template '{{target_paths}}' will get replaced at runtime with the target paths," +
+                    f"  '{{affected_paths}}' will get replaced with affected paths." +
+                    f"  [default: %(default)s]"
+                ),
                 metavar='STRING',
                 default=self._glob_paths(defaults.get('tools', {}).get(tool, {}).get('config', "")),
             )

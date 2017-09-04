@@ -59,7 +59,7 @@ class Plugger:
             # XXX need async/sync detection for original and plugins
 
             async def multi_replacement(*args, **kwargs):
-                """A multi-replacement function."""
+                """Run all of the functions from the plugins which support this func."""
                 for this_func in funcs:
                     await this_func(*args, **kwargs)
             replacement = multi_replacement

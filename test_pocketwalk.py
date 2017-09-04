@@ -46,7 +46,15 @@ from pocketwalk.shell import Shell
 
 # [ Tests ]
 # XXX refactor test?  loop args?
-@dado.data_driven(['cancelled', 'loop_forever', 'vcs_running', 'loop_till_pass', 'all_tools_passed', 'any_tools_not_done', 'result'], {
+@dado.data_driven([
+    'cancelled',
+    'loop_forever',
+    'vcs_running',
+    'loop_till_pass',
+    'all_tools_passed',
+    'any_tools_not_done',
+    'result',
+], {
     'cancelled': [True, None, None, None, None, None, False],
     'loop_forever': [False, True, None, None, None, None, True],
     'vcs_running': [False, False, True, None, None, None, True],
@@ -90,7 +98,7 @@ def is_coro(maybe_coro: typing.Any) -> bool:
         return bool(
             maybe_coro.send and
             maybe_coro.throw and
-            maybe_coro.close
+            maybe_coro.close  # noqa: C812 - single statement for a single arg func, trailing comma makes no sense.
         )
     except AttributeError:
         return False
@@ -112,6 +120,7 @@ class DoNotUse:
 
 class Tester:
     """A tester wrapper."""
+
     # XXX make a copy replay io, rather than taking the current coro
 
     def __init__(self, function: typing.Callable) -> None:
@@ -153,7 +162,7 @@ class Tester:
         if self._exc_info is not Sentinels.NOT_SET:
             raise self._exc_info[1].with_traceback(self._exc_info[2])
         testing.assertEqual(self._last_output, signals.WaitFor(
-            *futures, minimum_done=minimum_done, cancel_remaining=cancel_remaining, timeout=timeout
+            *futures, minimum_done=minimum_done, cancel_remaining=cancel_remaining, timeout=timeout,
         ))
         return self
 
@@ -168,7 +177,7 @@ class Tester:
             raise RuntimeError("Coroutine has not been set!")
         try:
             args = (DoNotUse(),)
-            kwargs = dict()  # type: dict
+            kwargs = {}  # type: dict
             self._last_output = self._coro.send(*args, **kwargs)
         except StopIteration as error:
             self._last_output = error.value

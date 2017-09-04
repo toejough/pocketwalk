@@ -80,7 +80,7 @@ class VCS:
     async def _get_all_tracked_paths(self, config):
         """Get all tracked."""
         tools = config['tools']
-        tracked = list()
+        tracked = []
         for this_tool in tools:
             tracked += config[f'{this_tool}_targets']
             tracked += config[f'{this_tool}_triggers']
@@ -130,7 +130,12 @@ class VCS:
 
     async def _get_missing_vcs_paths(self):
         """Get paths to remove."""
-        status_lines = subprocess.run(['git', 'status', '--porcelain'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True).stdout.splitlines()
+        status_lines = subprocess.run(
+            ['git', 'status', '--porcelain'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True,
+        ).stdout.splitlines()
         to_delete = [l.strip().split(' ', 1)[-1] for l in status_lines if l.strip().startswith('D')]
         return to_delete
 
@@ -138,9 +143,17 @@ class VCS:
         """Get paths to add."""
         # XXX use path for all paths
         # XXX for git use git root instead of cwd
-        status_lines = subprocess.run(['git', 'status', '--porcelain'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True).stdout.splitlines()
+        status_lines = subprocess.run(
+            ['git', 'status', '--porcelain'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True,
+        ).stdout.splitlines()
         to_add = [l.strip().split(' ', 1)[-1] for l in status_lines if l.startswith('??')]
-        tracked = [str(pathlib.Path(p).absolute().relative_to(pathlib.Path.cwd())) for p in await self._get_all_tracked_paths(config)]
+        tracked = [
+            str(pathlib.Path(p).absolute().relative_to(pathlib.Path.cwd()))
+            for p in await self._get_all_tracked_paths(config)
+        ]
         tracked_to_add = [l for l in to_add if l in tracked]
         directories = [l for l in to_add if l.endswith('/')]
         in_new_dir = [t for t in tracked if any(t.startswith(d) for d in directories)]
@@ -148,9 +161,17 @@ class VCS:
 
     async def _get_changed_vcs_paths(self, config):
         """Get paths which changed."""
-        status_lines = subprocess.run(['git', 'status', '--porcelain'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True).stdout.splitlines()
+        status_lines = subprocess.run(
+            ['git', 'status', '--porcelain'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True,
+        ).stdout.splitlines()
         to_add = [l.strip().split(' ', 1)[-1] for l in status_lines if l.strip().startswith('M')]
-        tracked = [str(pathlib.Path(p).absolute().relative_to(pathlib.Path.cwd())) for p in await self._get_all_tracked_paths(config)]
+        tracked = [
+            str(pathlib.Path(p).absolute().relative_to(pathlib.Path.cwd()))
+            for p in await self._get_all_tracked_paths(config)
+        ]
         tracked_to_add = [l for l in to_add if l in tracked]
         return tracked_to_add
 
@@ -158,7 +179,11 @@ class VCS:
         """Show the user changes."""
         print(f"removing: {to_remove}")
         print(f"adding: {to_add}")
-        print(subprocess.run(['git', 'diff', '--color', '--'] + changed, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).stdout.decode('utf-8'))
+        print(subprocess.run(
+            ['git', 'diff', '--color', '--'] + changed,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        ).stdout.decode('utf-8'))
 
     async def _async_input(self, prompt: str) -> str:
         """Async input prompt."""
@@ -183,7 +208,7 @@ class VCS:
 
     @staticmethod
     def _remove_missing_vcs_paths(to_remove):
-        """remove missing vcs paths."""
+        """Remove missing vcs paths."""
         if to_remove:
             subprocess.run(['git', 'rm'] + to_remove)
 

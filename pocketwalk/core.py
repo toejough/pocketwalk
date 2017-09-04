@@ -89,8 +89,14 @@ class Core:
         tools_with_unchanged_contexts = self._shell.get_tools_unchanged_since_last_results(context_data)
         unreported_unchanged_tools = await self._shell.filter_out_reported_tools(tools_with_unchanged_contexts)
         # XXX extend the valid names
-        tools_with_failing_preconditions = await self._shell.get_tools_failing_preconditions(context_data, tools_to_run=tools_with_changed_contexts)  # pylint: disable=invalid-name
-        tools_to_run = self._shell.contexts_in_a_and_not_b(a_context=tools_with_changed_contexts, b_context=tools_with_failing_preconditions)
+        tools_with_failing_preconditions = await self._shell.get_tools_failing_preconditions(  # pylint: disable=invalid-name
+            context_data,
+            tools_to_run=tools_with_changed_contexts,
+        )
+        tools_to_run = self._shell.contexts_in_a_and_not_b(
+            a_context=tools_with_changed_contexts,
+            b_context=tools_with_failing_preconditions,
+        )
 
         # replay valid results
         await signals.call(self._shell.replay_previous_results_for, unreported_unchanged_tools)
