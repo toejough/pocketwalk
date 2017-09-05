@@ -76,7 +76,7 @@ class Shell:  # pylint: disable=too-many-public-methods
         """Ensure tools not in the tools list are stopped."""
         raise NotImplementedError
 
-    def replay_previous_results_for(self, tools):
+    async def replay_previous_results_for(self, tools):
         """Replay the previous results for the given tools."""
         raise NotImplementedError
 
@@ -117,6 +117,6 @@ class Shell:  # pylint: disable=too-many-public-methods
         """Ensure the tools are stopped."""
         raise NotImplementedError
 
-    def get_tools(self, config):
+    async def get_tools(self, config):
         """Get the tools from the config."""
         raise NotImplementedError

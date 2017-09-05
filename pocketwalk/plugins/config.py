@@ -31,7 +31,7 @@ class Config:
 
     # [ API ]
     @staticmethod
-    def get_tools(config):
+    async def get_tools(config):
         """Return tools from the config."""
         return config['tools']
 

@@ -99,7 +99,7 @@ class Core:
         )
 
         # replay valid results
-        await signals.call(self._shell.replay_previous_results_for, unreported_unchanged_tools)
+        await self._shell.replay_previous_results_for(unreported_unchanged_tools)
 
         # starting/stopping tools
         await self._shell.ensure_tools_stopped(tools_with_failing_preconditions, reason="failing preconditions")
@@ -109,15 +109,15 @@ class Core:
         await self._shell.ensure_tools_running(tools_to_run, on_completion=self._shell.save_context)
 
         # detail - needed for vcs to determine whether to run/stop
-        tool_state = await signals.call(self._shell.get_tool_state)
+        tool_state = await self._shell.get_tool_state()
 
         # VCS - commit to source control
-        await signals.call(self._shell.update_vcs, config, tool_state=tool_state)
+        await self._shell.update_vcs(config, tool_state=tool_state)
         # XXX what about when the VCS fails?  What about when any shell command raises?  There need to be guards in place.
         # need general debug output saved to a file, and return 1
 
         # detail - need a return state for the outer loop
-        return await signals.call(self._shell.get_tools, config)
+        return await self._shell.get_tools(config)
 
 
 # [ Main ]

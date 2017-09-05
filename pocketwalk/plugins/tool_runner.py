@@ -173,7 +173,7 @@ class ToolRunner:
         if tools_to_stop:
             print(f"Stopped removed tools: {tools_to_stop}")
 
-    def replay_previous_results_for(self, tools):
+    async def replay_previous_results_for(self, tools):
         """Replay the previous results for the given tools."""
         previous_results = {t: {
             'output': (
