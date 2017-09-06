@@ -12,7 +12,7 @@ from setuptools import setup, find_packages
 # [ Main ]
 setup(
     name='pocketwalk',
-    version='0.2.0',
+    version='0.2.1',
     description='Pocketwalk: Watch/Run/Commit.',
     url='https://github.com/toejough/pocketwalk',
     author='toejough',
@@ -37,7 +37,7 @@ setup(
     ],
     keywords="watch run commit",
     packages=find_packages(),
-    install_requires=['runaway', 'pytoml', 'wrapt'],
+    install_requires=['runaway==0.2.1', 'pytoml', 'wrapt'],
     extras_require={
         'checkers': [
             'pylint', 'flake8', 'dodgy', 'vulture',
