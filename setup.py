@@ -12,7 +12,7 @@ from setuptools import setup, find_packages
 # [ Main ]
 setup(
     name='pocketwalk',
-    version='0.2.1',
+    version='0.2.2',
     description='Pocketwalk: Watch/Run/Commit.',
     url='https://github.com/toejough/pocketwalk',
     author='toejough',
