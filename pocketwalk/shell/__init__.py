@@ -2,6 +2,8 @@
 
 
 # [ Static Checking ]
+# stop flake8 from complaining these imports aren't used.  They're exposed as API.
+# They're used.
 # flake8: noqa
 
 
