@@ -55,11 +55,19 @@ setup(
         'console_scripts': [
             'pocketwalk=pocketwalk.core:main',
         ],
-        'pocketwalk': [
+        'pocketwalk_config': [
             'config = pocketwalk.plugins.config:get_config',
+        ],
+        'pocketwalk_contextmanager': [
             'context_manager = pocketwalk.plugins.context_manager:get_context_manager',
+        ],
+        'pocketwalk_toolrunner': [
             'runner = pocketwalk.plugins.tool_runner:get_tool_runner',
+        ],
+        'pocketwalk_vcs': [
             'vcs = pocketwalk.plugins.vcs:get_vcs',
+        ],
+        'pocketwalk_cancellation': [
             'cancellation = pocketwalk.plugins.cancellation:get_cancellation',
         ],
     },

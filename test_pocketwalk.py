@@ -30,14 +30,13 @@ Features:
 import enum
 import typing
 import sys
-from unittest.mock import sentinel
+from unittest.mock import sentinel, MagicMock
 # [ -Third Party ]
 import dado
 from runaway import signals, testing, handlers
 import utaw
 # [ -Project ]
 from pocketwalk.core import Core
-from pocketwalk.shell import Shell
 
 
 # pylint: disable=protected-access
@@ -65,29 +64,32 @@ from pocketwalk.shell import Shell
 })  # pylint: disable=too-many-arguments
 def test_should_loop(cancelled, loop_forever, vcs_running, loop_till_pass, all_tools_passed, any_tools_not_done, result):
     """Test the should loop behavior."""
-    shell = Shell()
-    core = Core(shell)
+    tool_runner = MagicMock()
+    config = MagicMock()
+    vcs = MagicMock()
+    cancellation = MagicMock()
+    core = Core(context_manager=None, tool_runner=tool_runner, config=config, vcs=vcs, cancellation=cancellation)
     tester = Tester(core._should_loop).called_with_args(sentinel.tools)
-    tester.calls(shell.cancelled).with_args()
+    tester.calls(cancellation.cancelled).with_args()
     tester.receives(cancelled)
     if cancelled:
         return tester.returns(result)
-    tester.calls(shell.loop_forever).with_args()
+    tester.calls(config.loop_forever).with_args()
     tester.receives(loop_forever)
     if loop_forever:
         return tester.returns(result)
-    tester.calls(shell.vcs_running).with_args()
+    tester.calls(vcs.vcs_running).with_args()
     tester.receives(vcs_running)
     if vcs_running:
         return tester.returns(result)
-    tester.calls(shell.loop_till_pass).with_args()
+    tester.calls(config.loop_till_pass).with_args()
     tester.receives(loop_till_pass)
     if loop_till_pass:
-        tester.calls(shell.all_tools_passed).with_args(sentinel.tools)
+        tester.calls(tool_runner.all_tools_passed).with_args(sentinel.tools)
         tester.receives(all_tools_passed)
         if not all_tools_passed:
             return tester.returns(result)
-    tester.calls(shell.any_tools_not_done).with_args()
+    tester.calls(tool_runner.any_tools_not_done).with_args()
     tester.receives(any_tools_not_done)
     return tester.returns(result)
 

@@ -6,96 +6,43 @@
 
 
 # [ Imports ]
-import inspect
 import pkg_resources
 
 
 # [ API ]
-# XXX need per function docs
-# XXX need project docs
-# XXX need mypy typing
-# XXX figure out how to specify plugins & order discovered
-#     function providers deterministically.
-#     perhaps a config file with white/black lists?
-#     perhaps a conflict resolver function & state, AND
-#     require all implemented functions to be independent?  no... ugh.  ok.
-# XXX ask plugin what functions it implements - filter to only those that need plugging
-# XXX ask plugin if it thinks it should be used - pass arbitrary state & overlapping plugins
-# XXX in the case there are still multiple plugins implementing non-multi functions, run an optional
-#     conflict resolver, else raise
-# XXX pass names of multi-functions explicitly
-# XXX allow specific names to be passed in for plugging, if you don't want all funcs in a container
-#     plugged
 # XXX validate function signatures & raise an exception if the chosen plugin doesn't match.
 # XXX validate function typing & raise if the chosen plugin doesn't match.
+# XXX allow multiple plugins for things that can just be called in parallel
+# XXX supply a default conflict resolver, and allow overrides
 class Plugger:
     """Plugin management tool."""
 
-    @staticmethod
-    def get_plugins(namespace):
-        """Get plugins."""
+    def __init__(self, namespace):
+        """Init the state."""
+        self._namespace = namespace
+
+    # [ API ]
+    def resolve(self, target):
+        """
+        Resolve the plugin for the given target.
+
+        Plugins will be discovered/loaded via setuptools entry points.
+        The namespace for the entry points will be {init-namespace}_{target-name},
+        all lower-cased.
+
+        The function/class the plugin resolves to will be called with no arguments.
+        """
         plugins = {}
+        namespace = f'{self._namespace.lower()}_{target.__name__.lower()}'
         print(f"Loading plugins for {namespace}...")
         for entry_point in pkg_resources.iter_entry_points(namespace):
             print(f"  {entry_point.name}")
             plugins[entry_point.name] = entry_point.load()()
-        return plugins
 
-    @staticmethod
-    def get_functions(obj):
-        """Get functions to plug from the shell."""
-        funcs = dict(inspect.getmembers(obj, callable))
-        public_funcs = {k: v for k, v in funcs.items() if not k.startswith('_')}
-        return public_funcs
+        num_plugins = len(plugins)
+        if 1 < num_plugins:
+            raise RuntimeError(f"Too many ({num_plugins}) plugins for {namespace}.")
+        if not num_plugins:
+            raise RuntimeError(f"No plugins found for {namespace}")
 
-    @staticmethod
-    def plug(obj, *, name, replacement):
-        """Plug a replacement into the object."""
-        current_func = getattr(obj, name)
-        is_multi_ = getattr(current_func, 'multi', False)
-        if is_multi_:
-            funcs = current_func.funcs
-            funcs.append(replacement)
-            # XXX need async/sync detection for original and plugins
-
-            async def multi_replacement(*args, **kwargs):
-                """Run all of the functions from the plugins which support this func."""
-                for this_func in funcs:
-                    await this_func(*args, **kwargs)
-            replacement = multi_replacement
-            replacement.multi = is_multi_
-            replacement.funcs = funcs
-        setattr(obj, name, replacement)
-
-    @staticmethod
-    def is_multi(obj, *, name):
-        """Plug a replacement into the object."""
-        current_func = getattr(obj, name)
-        return getattr(current_func, 'multi', False)
-
-    def implement(self, obj, namespace):
-        """Implement the object with plugins from the given namespace."""
-        plugins = self.get_plugins(namespace)
-        functions = self.get_functions(obj)
-        for func_name in functions:
-            matched = False
-            for plugin in plugins.values():
-                plugin_functions = self.get_functions(plugin)
-                if func_name in plugin_functions:
-                    self.plug(obj, name=func_name, replacement=plugin_functions[func_name])
-                    matched = True
-                    if not self.is_multi(obj, name=func_name):
-                        break
-            if not matched:
-                raise RuntimeError(f"no plugin found to implement {func_name} for {obj}")
-        return obj
-
-
-def multi(wrapped):
-    """Decorate the wrapped function as a multi-plugin."""
-    wrapped.multi = True
-    wrapped.funcs = []
-    return wrapped
-
-
-# FOO_PASSWORD = "abcdefg"
+        return list(plugins.values())[0]

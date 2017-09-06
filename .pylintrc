@@ -60,7 +60,9 @@ disable=print-statement,parameter-unpacking,unpacking-in-except,old-raise-syntax
     # keeps prompting for spaces around kwarg assignment, but only sometimes?  Seems buggy.
     bad-whitespace,
     # sometimes fixme's are a more convenient form of issue tracking for pre 1.0.  by 1.0 this line should be removed
-    fixme
+    fixme,
+    # misplaced comparison constant?  I prever the lower thing to the left, constant or no.
+    misplaced-comparison-constant,
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
