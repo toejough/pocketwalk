@@ -1,23 +1,28 @@
-# Core vs Shell
+# Core/Shell/Plugin
 
 Anything core to the logic/algorithm/features of the module goes in 'core'.
 
-Everything else goes in 'shell.'
+Everything else goes into a plugin, which is defined in 'shell'.
 
-For every function/data-structure, if someone else could supply a different
+For every function/class/data-structure, if someone else could supply a different
 implementation and that wouldn't change the core functionality/intent/features of your
-app, then that function/data-structure goes in the shell.
+app, then that function/data-structure's description goes in the shell, and implementations come from plugins.
 
 # Async vs sync
 
 Pure functions should be sync, impure functions should be async.
 
+Treat everything coming in from a plugin as async, unless you
+specifically want to indicate that that thing should be sync, and
+are willing to pay penalties if the implementor decides it can be better done with some async code.
+
+If you treat everything from the shell as async, you leave it up to the implementation whether to use sync/async under the covers.
+
 # Pure Async
 
-Experimental.
+Anything async that only calls functions (no direct branching logic) is pure async.
 
-Anything that only calls functions (no direct branching logic) is pure async.
-All async functions should be pure async.
+As with pure functions, prefer pure async functions.
 
 # Test vs no test
 
@@ -39,28 +44,28 @@ Mixed-mode functions do need to be tested - there are now different input/output
 Every function should express a single intent.  This is especially important for pure async functions,
 whose only real testing is going to be code review and E2E runtime behavior.
 
-
 Development Notes:
-* core -> shell -> plugin|(adapter -> external) for everything.
+* core -> shell -> plugin for everything.
 * the core is what is essential to a thing's being/process/feature list.
   If the logic were handled by a plugin and implemented differently, and that would
   be a material difference to the purpose of the core, then the logic belongs in the
-  core.  Otherwise, it belongs in an interactor, which is accessed via the shell.
+  core.  Otherwise, it belongs in a plugin, which is accessed via the shell.
 * The shell is how the core interacts with all non-essential logic and side-effects.
   This way, the core does not care who implements the logic, or in what groupings, etc.
   This also enforces that the implementors provide the API the core wants to use, rather
   than forcing the core to use the API the implementors provide.
 * The shell plug-ins can be adapters against 3rd party or generic libs, or purpose-built plugins.
-* adapters should only wrap/adapt behavior of the libs, not define net-new behavior
 * async/await for impure functions
 * make functions pure by default, impure only if necessary
+* make async functions pure async by default, impure only if necessary
 * multi-step async flows that should be 'atomic' need error handling/rollback logic.
-* shell is a per-function plugin manager.  Plugins are passed into the shell, and the shell:
-    * identifies unfulfilled functions
-    * identifies matches in plugin
-    * warns for matches that don't match annotations/signatures
-    * warns for matches that are already fulfilled, unless those matches are composable/mappable
-    * replaces unfulfilled shell functions
-    * raises an exception if there are any unfulfilled functions
-    * functions decorated with single-plugin, concurrent-plugin, get fulfilled
-
+* plugins are:
+    * discovered by namespace
+    * self-filtered (pass in arbitrary object for use in self-filtering)
+    * caller-filtered (request an arbitrary object for use in caller filtering)
+    * error if non-multi plugin-target has multiple matching plugins after filtering
+    * error if no matching plugins after filtering
+    * returned to the caller for use wherever necessary (generally, passed into the core)
+    * checked for various guarantees - either the default or passed in validation
+* spec -> tests -> code -> vulture -> pylint -> flake8 -> arch-review -> mypy -> API-checklist -> documentation-checklist
+* details should go into properties/context-managers/decorators
